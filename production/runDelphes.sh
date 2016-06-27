@@ -12,7 +12,7 @@ inputfile=`python -c "import PSet; print PSet.Process.source.fileNames[0]"`
 echo $inputfile
 
 pfnInput=`edmFileUtil -d $inputfile`
-
-Delphes3.3.2/DelphesCMSFWLite Delphes-3.3.2/cards/delphes_card_CMS_PileUp.tcl Delphes.root $inputfile 
+echo $pfnInput
+Delphes3.3.2/DelphesCMSFWLite Delphes-3.3.2/cards/delphes_card_CMS_PileUp.tcl Delphes.root $pfnInput
 
 cmsRun -j FrameworkJobReport.xml -p PSet.py
