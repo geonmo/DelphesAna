@@ -8,5 +8,6 @@ cp DelphesCMSFWLite.cpp Delphes-3.3.2/reader
 cd Delphes-3.3.2
 make -j 20
 
-cd -
-tar -czvf delphesProd.tar.gz Delphes-3.3.2/
+cd ..
+rm delphesProd.tar.gz
+tar -czvf delphesProd.tar.gz Delphes-3.3.2/ delphes_card_CMSPU_mod.tcl 
