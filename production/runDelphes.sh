@@ -4,7 +4,7 @@ eval `scramv1 runtime -sh`
 echo "This is job number $1"
 
 tar -zxvf delphesProd.tar.gz 
-chmod +x Delphes3.3.2/DelphesCMSFWLite 
+chmod +x Delphes-3.3.2/DelphesCMSFWLite 
 
 
 echo "========= Acquire input filename ========="
@@ -13,6 +13,6 @@ echo $inputfile
 
 pfnInput=`edmFileUtil -d $inputfile`
 echo $pfnInput
-Delphes3.3.2/DelphesCMSFWLite Delphes-3.3.2/cards/delphes_card_CMS_PileUp.tcl Delphes.root $pfnInput
+Delphes-3.3.2/DelphesCMSFWLite delphes_card_CMSPU_mod.tcl Delphes.root $pfnInput
 
 cmsRun -j FrameworkJobReport.xml -p PSet.py
