@@ -7,6 +7,7 @@ mv delphes-master delphesCode
 cp DelphesCMSFWLite.cpp delphesCode/readers 
 
 cd delphesCode
+./configure
 make -j 20
 
 cd ..
