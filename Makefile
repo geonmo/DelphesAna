@@ -16,10 +16,10 @@ BIN = JetTestAna
 OBJECTS = JetTestAna.o
 
 $(BIN): $(OBJECTS)
-	$(CXX) -o $@ $(OBJECTS) $(WARN_FLAGS) $(STD_FLAGS) $(LINKFLAGS) `root-config --glibs` -L/cms/scratch/geonmo/MCSW/MG5_aMC/Delphes/ -lDelphes
+	$(CXX) -o $@ $(OBJECTS) $(WARN_FLAGS) $(STD_FLAGS) $(LINKFLAGS) `root-config --glibs` -Lproduction/delphesCode/ -lDelphes
 
 %.o: %.cpp 
-	$(CXX) $(WARN_FLAGS) $(STD_FLAGS) $(CXXFLAGS) -c $< -o $@ `root-config --cflags` -I/cms/scratch/geonmo/MCSW/MG5_aMC/Delphes
+	$(CXX) $(WARN_FLAGS) $(STD_FLAGS) $(CXXFLAGS) -c $< -o $@ `root-config --cflags` -Iproduction/delphesCode/
 
 .PHONY: clean test
 

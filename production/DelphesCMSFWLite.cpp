@@ -86,7 +86,10 @@ void ConvertInput(fwlite::Event &event, Long64_t eventCounter,
   else if (!((handleLHEEvent.getBranchNameFor(event, "externalLHEProducer")).empty())) {
     handleLHEEvent.getByLabel(event, "externalLHEProducer");
   }
-  else { std::cout<<"Wrong LHEEvent Label! Please, check the input file."<<std::endl; useLHEEvent = false; }
+  else { 
+    if ( eventCounter<2) std::cout<<"Wrong LHEEvent Label or LHEEvent Collection is missing! Fix weight to 1.0."<<std::endl; 
+    useLHEEvent = false; 
+  }
 
   if (!((handleParticle.getBranchNameFor(event, "genParticles")).empty())) {
     handleParticle.getByLabel(event, "genParticles");
