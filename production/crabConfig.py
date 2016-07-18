@@ -12,13 +12,14 @@ while os.path.isdir("%s/crab_%s%s" % (config.General.workArea, baseName, index))
 config.General.requestName = baseName + str(index)
 
 config.General.transferOutputs = True
-config.General.transferLogs = False
+config.General.transferLogs = True
 
 config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = 'pset_delphes.py'
 config.JobType.inputFiles = ['runDelphes.sh', 'delphesProd.tar.gz']
 config.JobType.outputFiles = ['Delphes.root']
 config.JobType.scriptExe = 'runDelphes.sh'
+config.JobType.allowUndistributedCMSSW = True
 
 ### TT to Dilepton
 config.Data.inputDataset = '/TTTo2L2Nu_13TeV-powheg/RunIIFall15DR76-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext1-v1/AODSIM'
