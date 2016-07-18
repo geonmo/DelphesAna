@@ -77,6 +77,7 @@ void ConvertInput(fwlite::Event &event, Long64_t eventCounter,
   vector< const reco::Candidate * > vectorCandidate;
   vector< const reco::Candidate * >::iterator itCandidate;
 
+  bool useLHEEvent = true;
   handleGenEventInfo.getByLabel(event, "generator");
 
   if (!((handleLHEEvent.getBranchNameFor(event, "source")).empty())) {
@@ -85,7 +86,7 @@ void ConvertInput(fwlite::Event &event, Long64_t eventCounter,
   else if (!((handleLHEEvent.getBranchNameFor(event, "externalLHEProducer")).empty())) {
     handleLHEEvent.getByLabel(event, "externalLHEProducer");
   }
-  else { std::cout<<"Wrong LHEEvent Label! Please, check the input file."<<std::endl; exit(-1);}
+  else { std::cout<<"Wrong LHEEvent Label! Please, check the input file."<<std::endl; useLHEEvent = false; }
 
   if (!((handleParticle.getBranchNameFor(event, "genParticles")).empty())) {
     handleParticle.getByLabel(event, "genParticles");
@@ -106,8 +107,6 @@ void ConvertInput(fwlite::Event &event, Long64_t eventCounter,
   Double_t px, py, pz, e, mass;
   Double_t x, y, z;
 
-  const vector< gen::WeightsInfo > &vectorWeightsInfo = handleLHEEvent->weights();
-  vector< gen::WeightsInfo >::const_iterator itWeightsInfo;
 
   element = static_cast<HepMCEvent *>(branchEvent->NewEntry());
 
@@ -131,12 +130,19 @@ void ConvertInput(fwlite::Event &event, Long64_t eventCounter,
   element->ReadTime = 0.0;
   element->ProcTime = 0.0;
 
-  for(itWeightsInfo = vectorWeightsInfo.begin(); itWeightsInfo != vectorWeightsInfo.end(); ++itWeightsInfo)
-  {
-    weight = static_cast<Weight *>(branchRwgt->NewEntry());
-    weight->Weight = itWeightsInfo->wgt;
+  if ( useLHEEvent) {
+    const vector< gen::WeightsInfo > &vectorWeightsInfo = handleLHEEvent->weights();
+    vector< gen::WeightsInfo >::const_iterator itWeightsInfo;
+    for(itWeightsInfo = vectorWeightsInfo.begin(); itWeightsInfo != vectorWeightsInfo.end(); ++itWeightsInfo)
+    {
+      weight = static_cast<Weight *>(branchRwgt->NewEntry());
+      weight->Weight = itWeightsInfo->wgt;
+    }
   }
-
+  else {
+      weight = static_cast<Weight *>(branchRwgt->NewEntry());
+      weight->Weight = 1.0;
+  }
   pdg = TDatabasePDG::Instance();
 
   for(itParticle = handleParticle->begin(); itParticle != handleParticle->end(); ++itParticle)
