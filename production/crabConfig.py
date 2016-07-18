@@ -12,7 +12,7 @@ while os.path.isdir("%s/crab_%s%s" % (config.General.workArea, baseName, index))
 config.General.requestName = baseName + str(index)
 
 config.General.transferOutputs = True
-config.General.transferLogs = True
+config.General.transferLogs = False
 
 config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = 'pset_delphes.py'
@@ -30,8 +30,8 @@ config.Data.inputDBS = 'global'
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1
 config.Data.totalUnits = 1
-config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
+config.Data.outLFNDirBase = '/store/user/%s/DelphesAna_201607/' % (getUsernameFromSiteDB())
 config.Data.publication = False
-config.Data.outputDatasetTag = 'DelphesProduction_from_ttDilepton_%d'%(index)
+config.Data.outputDatasetTag = 'DelphesProduction_%d'%(index)
 
-config.Site.storageSite = 'T3_KR_KISTI'
+config.Site.storageSite = 'T3_KR_UOS'

@@ -1,13 +1,14 @@
 #!/bin/bash
 eval `scramv1 runtime -sh`
-wget http://cp3.irmp.ucl.ac.be/downloads/Delphes-3.3.2.tar.gz
-tar -zxf Delphes-3.3.2.tar.gz
+wget https://github.com/delphes/delphes/archive/master.zip
+unzip master.zip
+#tar -zxf Delphes-3.3.2.tar.gz
+mv delphes-master delphesCode
+cp DelphesCMSFWLite.cpp delphesCode/readers 
 
-cp DelphesCMSFWLite.cpp Delphes-3.3.2/readers 
-
-cd Delphes-3.3.2
+cd delphesCode
 make -j 20
 
 cd ..
 rm delphesProd.tar.gz
-tar -czvf delphesProd.tar.gz Delphes-3.3.2/ delphes_card_CMSPU_mod.tcl 
+tar -czvf delphesProd.tar.gz delphesCode delphes_card_CMSPU_mod.tcl 
