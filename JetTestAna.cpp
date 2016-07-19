@@ -76,12 +76,12 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
   TClonesArray *branchPhoton = treeReader->UseBranch("Photon");
   TClonesArray *branchMuon = treeReader->UseBranch("Muon");
 
-  TClonesArray *branchTrack = treeReader->UseBranch("Track");
-  TClonesArray *branchTower = treeReader->UseBranch("Tower");
+  TClonesArray *branchTrack = treeReader->UseBranch("jetConstituent");
+  //TClonesArray *branchTower = treeReader->UseBranch("Tower");
 
-  TClonesArray *branchEFlowTrack = treeReader->UseBranch("EFlowTrack");
-  TClonesArray *branchEFlowPhoton = treeReader->UseBranch("EFlowPhoton");
-  TClonesArray *branchEFlowNeutralHadron = treeReader->UseBranch("EFlowNeutralHadron");
+  //TClonesArray *branchEFlowTrack = treeReader->UseBranch("EFlowTrack");
+  //TClonesArray *branchEFlowPhoton = treeReader->UseBranch("EFlowPhoton");
+  //TClonesArray *branchEFlowNeutralHadron = treeReader->UseBranch("EFlowNeutralHadron");
   TClonesArray *branchJet = treeReader->UseBranch("Jet");
 
   Long64_t allEntries = treeReader->GetEntries();
@@ -127,6 +127,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
 
         if(object->IsA() == GenParticle::Class())
         {
+          //std::cout<<"Call1"<<std::endl;
           particle = (GenParticle*) object;
           if( abs(particle->PID) == 11 || abs(particle->PID==13) ) { 
             if ( !notice ) { std::cout<<"Jet Index : "<<i<<" Jet pT:"<<jet->PT<<"  Jet Eta "<<jet->Eta<<"  Jet Phi "<<jet->Phi<<std::endl; notice = true; }
@@ -135,9 +136,16 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
         }
         else if(object->IsA() == Track::Class())
         {
+          //std::cout<<"Call2"<<std::endl;
           Track* track = (Track*) object;
           GenParticle* trackGen = (GenParticle*)track->Particle.GetObject();
+          //cout<<"TrackGen acquired"<<std::endl;
+          if ( trackGen == nullptr) { 
+            //cout<<"trackGen is null"<<endl; 
+            continue; 
+          }
           genPID = trackGen->PID;
+          //std::cout<<"trackGen = "<<genPID<<endl;
           if ( abs(genPID) != 11 && abs( genPID) != 13) continue;
           if ( track->PT < 1 ) continue;
           if ( !notice ) { std::cout<<"Jet Index : "<<i<<" Jet pT:"<<jet->PT<<"  Jet Eta "<<jet->Eta<<"  Jet Phi "<<jet->Phi<<std::endl; notice = true; }
@@ -145,6 +153,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
         }
         else if(object->IsA() == Tower::Class())
         {
+          //std::cout<<"Call3"<<std::endl;
           Tower* tower = (Tower*) object;
           //cout << "    Tower pt: " << tower->ET << ", eta: " << tower->Eta << ", phi: " << tower->Phi << endl;
           for( int k = 0 ; k< tower->Particles.GetEntriesFast() ; ++k) {
