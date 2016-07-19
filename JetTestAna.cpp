@@ -76,12 +76,18 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
   TClonesArray *branchPhoton = treeReader->UseBranch("Photon");
   TClonesArray *branchMuon = treeReader->UseBranch("Muon");
 
-  TClonesArray *branchTrack = treeReader->UseBranch("jetConstituent");
-  //TClonesArray *branchTower = treeReader->UseBranch("Tower");
+  //TClonesArray *branchTrack = treeReader->UseBranch("JetSubTracks");
 
-  //TClonesArray *branchEFlowTrack = treeReader->UseBranch("EFlowTrack");
-  //TClonesArray *branchEFlowPhoton = treeReader->UseBranch("EFlowPhoton");
-  //TClonesArray *branchEFlowNeutralHadron = treeReader->UseBranch("EFlowNeutralHadron");
+  TClonesArray *branchJetSubTrack = treeReader->UseBranch("JetSubTracks");
+  TClonesArray *branchJetSubPhoton = treeReader->UseBranch("JetSubPhotons");
+  TClonesArray *branchJetSubNeutralHadron = treeReader->UseBranch("JetSubNeutralHadrons");
+ 
+  /* 
+  TClonesArray *branchEFlowTrack = treeReader->UseBranch("EFlowTrack");
+  TClonesArray *branchEFlowPhoton = treeReader->UseBranch("EFlowPhoton");
+  TClonesArray *branchEFlowNeutralHadron = treeReader->UseBranch("EFlowNeutralHadron");
+  */
+  
   TClonesArray *branchJet = treeReader->UseBranch("Jet");
 
   Long64_t allEntries = treeReader->GetEntries();
@@ -97,6 +103,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
     treeReader->ReadEntry(entry);
     // Loop over all jets in event
     std::cout<<"Event : "<<entry<<std::endl;
+    cout<<"Process for GenParticle"<<endl;
     for (int  i =0 ; i < branchParticle->GetEntriesFast() ; ++i) {
       particle = (GenParticle*) branchParticle->At(i);
       bool isJpsiExisted = false;
@@ -113,6 +120,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
         plots->fgenJpsiM->Fill(particle->Mass);
       } 
     }
+    cout<<"EndProcess for GenParticle"<<endl;
 
     for(int i = 0; i < branchJet->GetEntriesFast(); ++i)
     {
@@ -125,6 +133,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
         // Check if the constituent is accessible
         if(object == 0) continue;
 
+        // For GenJet
         if(object->IsA() == GenParticle::Class())
         {
           //std::cout<<"Call1"<<std::endl;
@@ -134,6 +143,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
             cout << "    GenPart pt: " << particle->PT << ", eta: " << particle->Eta << ", phi: " << particle->Phi << ", PID:"<<particle->PID<<endl;
           }
         }
+        // End of GenJet part
         else if(object->IsA() == Track::Class())
         {
           //std::cout<<"Call2"<<std::endl;
@@ -159,10 +169,15 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
           //cout << "    Tower pt: " << tower->ET << ", eta: " << tower->Eta << ", phi: " << tower->Phi << endl;
           for( int k = 0 ; k< tower->Particles.GetEntriesFast() ; ++k) {
             GenParticle* towerGen = (GenParticle*)tower->Particles.At(k);
+            if ( towerGen == nullptr) {
+              //cout<<"towerGen is null"<<endl;
+              continue;
+            }
             genPID = towerGen->PID;
             if ( abs(genPID) != 11 && abs( genPID) != 13) continue;
-            //if ( !notice ) { std::cout<<"Jet Index : "<<i<<" Jet pT:"<<jet->PT<<"  Jet Eta "<<jet->Eta<<"  Jet Phi "<<jet->Phi<<std::endl; notice = true; }
-            //cout << "       Tower GENPart : " << towerGen->PT << ", eta: " << towerGen->Eta << ", phi: " << towerGen->Phi << ", GenPID: "<<towerGen->PID<<endl;
+            if ( !notice ) { std::cout<<"Jet Index : "<<i<<" Jet pT:"<<jet->PT<<"  Jet Eta "<<jet->Eta<<"  Jet Phi "<<jet->Phi<<std::endl; notice = true; }
+            cout << "       Tower Part    : " << tower->ET << ", eta: "    << tower->Eta    << ", phi: " << tower->Phi    << ", GenPID: "<<towerGen->PID<<endl;
+            cout << "       Tower GENPart : " << towerGen->PT << ", eta: " << towerGen->Eta << ", phi: " << towerGen->Phi << ", GenPID: "<<towerGen->PID<<endl;
           }
         }
         else cout<<"Other"<<std::endl;

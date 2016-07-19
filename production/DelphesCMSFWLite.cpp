@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
   Delphes *modularDelphes = 0;
   DelphesFactory *factory = 0;
   TObjArray *allParticleOutputArray = 0, *stableParticleOutputArray = 0, *partonOutputArray = 0;
-  Int_t i;
+  Int_t i, maxEvents, skipEvents;
   Long64_t eventCounter, numberOfEvents;
 
   if(argc < 4)
@@ -268,6 +268,19 @@ int main(int argc, char *argv[])
     confReader = new ExRootConfReader;
     confReader->ReadFile(argv[1]);
 
+    maxEvents = confReader->GetInt("::MaxEvents", 0);
+    skipEvents = confReader->GetInt("::SkipEvents", 0);
+
+    if(maxEvents < 0)
+    {
+      throw runtime_error("MaxEvents must be zero or positive");
+    }
+
+    if(skipEvents < 0)
+    {
+      throw runtime_error("SkipEvents must be zero or positive");
+    }
+
     modularDelphes = new Delphes("Delphes");
     modularDelphes->SetConfReader(confReader);
     modularDelphes->SetTreeWriter(treeWriter);
@@ -302,10 +315,14 @@ int main(int argc, char *argv[])
 
       // Loop over all objects
       eventCounter = 0;
+      int eventIdx     = 0;
       modularDelphes->Clear();
       treeWriter->Clear();
       for(event.toBegin(); !event.atEnd() && !interrupted; ++event)
       {
+        eventIdx++;
+        if ( eventIdx<= skipEvents) continue; 
+        if ( eventIdx>= maxEvents ) break; 
         ConvertInput(event, eventCounter, branchEvent, branchRwgt, factory,
           allParticleOutputArray, stableParticleOutputArray, partonOutputArray);
         modularDelphes->ProcessTask();
