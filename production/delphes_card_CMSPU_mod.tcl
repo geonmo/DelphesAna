@@ -34,6 +34,8 @@ set ExecutionPath {
 
   JetEnergyScale
 
+  ConstituentFilter
+
   PhotonEfficiency
   PhotonIsolation
 
@@ -522,6 +524,8 @@ module EnergyScale JetEnergyScale {
   set ScaleFormula {1.0}
 }
 
+
+
 ###################
 # Photon efficiency
 ###################
@@ -733,6 +737,17 @@ module UniqueObjectFinder UniqueObjectFinder {
   add InputArray JetEnergyScale/jets jets
 }
 
+module ConstituentFilter ConstituentFilter {
+
+ #add JetInputArray InputArray
+ #add JetInputArray GenJetFinder/jets
+ add JetInputArray FastJetFinder/jets
+
+ #add ConstituentInputArray InputArray OutputArray
+ add ConstituentInputArray TrackPileUpSubtractor/eflowTracks eflowTracks
+  
+}
+
 ##################
 # ROOT tree writer
 ##################
@@ -745,15 +760,17 @@ module TreeWriter TreeWriter {
 # add Branch InputArray BranchName BranchClass
   add Branch Delphes/allParticles Particle GenParticle
 
-  add Branch TrackMerger/tracks Track Track
-  add Branch Calorimeter/towers Tower Tower
+#  add Branch TrackMerger/tracks Track Track
+#  add Branch Calorimeter/towers Tower Tower
 
-  add Branch Calorimeter/eflowTracks EFlowTrack Track
-  add Branch Calorimeter/eflowPhotons EFlowPhoton Tower
-  add Branch Calorimeter/eflowNeutralHadrons EFlowNeutralHadron Tower
+#  add Branch Calorimeter/eflowTracks EFlowTrack Track
+#  add Branch Calorimeter/eflowPhotons EFlowPhoton Tower
+#  add Branch Calorimeter/eflowNeutralHadrons EFlowNeutralHadron Tower
 
   add Branch GenJetFinder/jets GenJet Jet
   add Branch GenMissingET/momentum GenMissingET MissingET
+
+  add Branch ConstituentFilter/eflowTracks jetConstituent Track
 
   add Branch UniqueObjectFinder/jets Jet Jet
   add Branch UniqueObjectFinder/electrons Electron Electron
