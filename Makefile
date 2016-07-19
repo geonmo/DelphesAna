@@ -16,7 +16,7 @@ BIN = JetTestAna
 OBJECTS = JetTestAna.o
 
 $(BIN): $(OBJECTS)
-	$(CXX) -o $@ $(OBJECTS) $(WARN_FLAGS) $(STD_FLAGS) $(LINKFLAGS) `root-config --glibs` -Lproduction/delphesCode/ -lDelphes
+	$(CXX) -o $@ $(OBJECTS) $(WARN_FLAGS) $(STD_FLAGS) $(LINKFLAGS) `root-config --glibs` -Lproduction/delphesCode -lDelphes
 
 %.o: %.cpp 
 	$(CXX) $(WARN_FLAGS) $(STD_FLAGS) $(CXXFLAGS) -c $< -o $@ `root-config --cflags` -Iproduction/delphesCode/
