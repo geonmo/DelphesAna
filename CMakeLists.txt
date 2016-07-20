@@ -13,5 +13,7 @@ include(${ROOT_USE_FILE})
 
 add_executable(JetTestAna JetTestAna.cpp)
 add_executable(PrintParm  PrintParm.cpp)
+add_executable(decayChannel  PrintParm.cpp)
 target_link_libraries(JetTestAna Delphes ${ROOT_LIBRARIES})
 target_link_libraries(PrintParm Delphes ${ROOT_LIBRARIES})
+target_link_libraries(decayChannel Delphes ${ROOT_LIBRARIES})
