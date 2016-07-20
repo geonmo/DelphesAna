@@ -321,8 +321,8 @@ int main(int argc, char *argv[])
       for(event.toBegin(); !event.atEnd() && !interrupted; ++event)
       {
         eventIdx++;
-        if ( eventIdx<= skipEvents) continue; 
-        if ( eventIdx>= maxEvents ) break; 
+        if ( skipEvents !=0 && eventIdx<= skipEvents) continue; 
+        if ( maxEvents  !=0 && eventIdx>= maxEvents ) break; 
         ConvertInput(event, eventCounter, branchEvent, branchRwgt, factory,
           allParticleOutputArray, stableParticleOutputArray, partonOutputArray);
         modularDelphes->ProcessTask();
