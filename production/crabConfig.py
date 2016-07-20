@@ -22,7 +22,7 @@ config.JobType.scriptExe = 'runDelphes.sh'
 config.JobType.allowUndistributedCMSSW = True
 
 ### TT to Dilepton
-config.Data.inputDataset = '/TTTo2L2Nu_13TeV-powheg/RunIIFall15DR76-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext1-v1/AODSIM'
+config.Data.inputDataset = '/TT_TuneCUETP8M1_13TeV-powheg-pythia8/RunIISpring16MiniAODv2-PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0_ext4-v1/MINIAODSIM'
 
 ### TT to Lepton+Jet
 #config.Data.inputDataset = '/TTToSemiLeptonic_13TeV-powheg/RunIIFall15DR76-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext1-v1/AODSIM'
@@ -30,7 +30,7 @@ config.Data.inputDataset = '/TTTo2L2Nu_13TeV-powheg/RunIIFall15DR76-PU25nsData20
 config.Data.inputDBS = 'global'
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1
-config.Data.totalUnits = 1
+#config.Data.totalUnits = 10000
 config.Data.outLFNDirBase = '/store/user/%s/DelphesAna_201607/' % (getUsernameFromSiteDB())
 config.Data.publication = False
 config.Data.outputDatasetTag = 'DelphesProduction_%d'%(index)

@@ -10,13 +10,13 @@ chmod +x delphesCode/DelphesCMSFWLite
 cp delphesCode/MinBias.pileup .
 
 echo "========= Acquire input filename ========="
-#inputfile=`python -c "import PSet; print PSet.process.source.fileNames[0]"`
-inputfile=`python -c "import pset_delphes; print pset_delphes.process.source.fileNames[0]"`
+inputfile=`python -c "import PSet; print PSet.process.source.fileNames[0]"`
+#inputfile=`python -c "import pset_delphes; print pset_delphes.process.source.fileNames[0]"`
 echo $inputfile
 
 pfnInput=`edmFileUtil -d $inputfile`
 echo $pfnInput
 delphesCode/DelphesCMSFWLite delphes_card_CMSPU_mod.tcl Delphes.root $pfnInput
 
-#cmsRun -j FrameworkJobReport.xml -p PSet.py
-cmsRun -j FrameworkJobReport.xml -p pset_delphes.py
+cmsRun -j FrameworkJobReport.xml -p PSet.py
+#cmsRun -j FrameworkJobReport.xml -p pset_delphes.py
