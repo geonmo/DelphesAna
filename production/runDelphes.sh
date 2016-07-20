@@ -3,7 +3,7 @@ eval `scramv1 runtime -sh`
 pwd
 echo "This is job number $1"
 
-tar -zxvf delphesProd.tar.gz
+tar -zxf delphesProd.tar.gz
 
 #cp DelphesCMSFWLite.cpp  
 chmod +x delphesCode/DelphesCMSFWLite 
