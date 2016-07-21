@@ -1,7 +1,7 @@
 #ifndef NDEBUG
-#define D(x) 
+#define D(x) x 
 #else
-#define D(x) x
+#define D(x) 
 #endif
 
 #include<iostream>
@@ -15,7 +15,8 @@ using namespace std;
 class ExRootTreeReader;
 
 DecayChannel::DecayChannel( TClonesArray* genParticles){
-  channel_ = channelSelection( genParticles) ;    
+  channel_ = channelSelection(genParticles ) ;   
+   
 }
 int DecayChannel::FindWboson(TClonesArray* genParticles, int baseIdx )
 {
@@ -53,21 +54,22 @@ int DecayChannel::FindLepton(TClonesArray* genParticles, int baseIdx )
   }
   return -1;
 }
-int DecayChannel::channelSelection( TClonesArray* genParticles) {
+int DecayChannel::channelSelection( TClonesArray* genParticles  ) {
   // searcing Top or anti top
   int nGenParticle = genParticles->GetEntriesFast();
+  D( std::cout<<"Num of genParticles : "<<nGenParticle<<std::endl; )
+  int top_idx =-1, antitop_idx=-1;
 
-  int top_idx =0, antitop_idx=0;
-
-  for (int  i =0 ; i < genParticles->GetEntriesFast() ; ++i) {
+  for (int  i =0 ; i < nGenParticle ; ++i) {
     GenParticle* genParticle = (GenParticle*) genParticles->At(i);
-    if ( top_idx==0 && genParticle->PID == 6) top_idx= i;
-    if ( antitop_idx==0 && genParticle->PID == -6 ) antitop_idx= i;
-    if ( top_idx !=0 && antitop_idx != 0 ) break;
+    D( std::cout<<"genParticle PID : "<<genParticle->PID<<std::endl; )
+    if ( top_idx==-1 && genParticle->PID == 6) top_idx= i;
+    if ( antitop_idx==-1 && genParticle->PID == -6 ) antitop_idx= i;
+    if ( top_idx !=-1 && antitop_idx != -1 ) break;
   }
 
-  int WbosonIdx1 = FindWboson(genParticles,     top_idx);
-  int WbosonIdx2 = FindWboson(genParticles, antitop_idx);
+  int WbosonIdx1 = FindWboson( genParticles,     top_idx);
+  int WbosonIdx2 = FindWboson( genParticles, antitop_idx);
 
   bool     topToLepton = false;
   bool antitopToLepton = false;

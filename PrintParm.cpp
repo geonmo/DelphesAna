@@ -1,3 +1,9 @@
+#ifndef NDEBUG
+#define D(x) x 
+#else
+#define D(x) 
+#endif
+
 #include<iostream>
 #include<fstream>
 #include "classes/DelphesClasses.h"
@@ -7,6 +13,7 @@
 #include <TH1.h>
 #include <TFile.h>
 #include <TTree.h>
+#include "DecayChannel.h"
 using namespace std;
 
 class ExRootTreeReader;
@@ -67,29 +74,26 @@ struct Data {
     type = 0;
   }
 }; 
-  
+
 
 
 void BookingTree(TTree* tree, Data& data) {
-  tree->Branch("data",&data,"nLep/i:lep1_pt/F:lep1_iso:lep2_pt:lep2_iso:lep3_pt:lep3_iso:lep4_pt:lep4_iso:dilep1_pt:dilep1_mass:dilep2_pt:dilep2_mass:dilep3_pt:dilep3_mass:dilep4_pt:dilep4_mass");
+  tree->Branch("data",&data,"nLep/i:lep1_pt/F:lep1_iso:lep2_pt:lep2_iso:lep3_pt:lep3_iso:lep4_pt:lep4_iso:dilep1_pt:dilep1_mass:dilep2_pt:dilep2_mass:dilep3_pt:dilep3_mass:dilep4_pt:dilep4_mass:met:met_phi:nJet/i:jet1_pt/F:jet1_eta:jet1_phi:jet2_pt:jet2_eta:jet2_phi:jet3_pt:jet3_eta:jet3_phi:jet4_pt:jet4_eta:jet4_phi:nbJet/i:bjet1_pt/F:bjet1_eta:bjet1_phi:bjet1_mva:bjet2_pt/F:bjet2_eta:bjet2_phi:bjet2_mva:type/i");
 }
 
 
-void testTree(TTree* tree){
-  Data data;
-  BookingTree(tree, data);
-  for(int i=0; i<10 ; i++) {
-    data.nLep=i;
-    data.lep1_pt= (float)i;
-    data.lep1_iso= (float)i;
-    data.lep2_pt= (float)i;
-    data.lep2_iso= (float)i;
-    data.lep3_pt= (float)i;
-    data.lep3_iso= (float)i;
-    data.lep4_pt= (float)i;
-    data.lep4_iso= (float)i;
-    tree->Fill();
-  }
+void putData(Data& data, int i){
+  data.nLep=i;
+  data.lep1_pt= (float)i;
+  data.lep1_iso= (float)i;
+  data.lep2_pt= (float)i;
+  data.lep2_iso= (float)i;
+  data.lep3_pt= (float)i;
+  data.lep3_iso= (float)i;
+  data.lep4_pt= (float)i;
+  data.lep4_iso= (float)i;
+  data.bjet2_eta = (float)i;
+  data.bjet1_mva = (float)i;
 }
 
 
@@ -100,127 +104,7 @@ void PrintParameters(ofstream& outfile, TTree* tree)
 
 }
 
-int FindWboson(TClonesArray* genParticles, int baseIdx )
-{
-  GenParticle* base = (GenParticle*)genParticles->At(baseIdx);
-  int absPID = abs(base->PID);
-  if ( absPID == 24 ) return baseIdx;
-
-  // First, D1
-  if ( base->D1 !=-1 ) {
-    int nextResult = FindWboson( genParticles, base->D1);
-    if ( nextResult !=-1 ) return nextResult;
-  }
-  // Next, D2
-  if ( base->D2 !=-1 ) {
-    int nextResult = FindWboson( genParticles, base->D2);
-    if ( nextResult !=-1 ) return nextResult;
-  }
-  return -1;
-}
-int FindLepton(TClonesArray* genParticles, int baseIdx )
-{
-  GenParticle* base = (GenParticle*)genParticles->At(baseIdx);
-  int absPID = abs(base->PID);
-  if ( absPID == 11 || absPID == 13 || absPID == 15 ) return baseIdx;
-
-  // First, D1
-  if ( base->D1 !=-1 ) {
-    int nextResult = FindLepton( genParticles, base->D1);
-    if ( nextResult !=-1 ) return nextResult;
-  }
-  // Next, D2
-  if ( base->D2 !=-1 ) {
-    int nextResult = FindLepton( genParticles, base->D2);
-    if ( nextResult !=-1 ) return nextResult;
-  }
-  return -1;
-}
-
-int channelSelection( TClonesArray* genParticles) {
-  // searcing Top or anti top
-  int nGenParticle = genParticles->GetEntriesFast();
-
-  int top_idx =0, antitop_idx=0;
-  
-  for (int  i =0 ; i < genParticles->GetEntriesFast() ; ++i) {
-    GenParticle* genParticle = (GenParticle*) genParticles->At(i);
-    if ( top_idx==0 && genParticle->PID == 6) top_idx= i;
-    if ( antitop_idx==0 && genParticle->PID == -6 ) antitop_idx= i;
-    if ( top_idx !=0 && antitop_idx != 0 ) break;
-  }
-
-  int WbosonIdx1 = FindWboson(genParticles,     top_idx);
-  int WbosonIdx2 = FindWboson(genParticles, antitop_idx);
-
-  bool     topToLepton = false;
-  bool antitopToLepton = false;
-
-  int lep1Idx = FindLepton( genParticles, WbosonIdx1);
-  int lep2Idx = FindLepton( genParticles, WbosonIdx2);
-  int lep1=-1, lep2=-1;
-  if ( lep1Idx != -1) lep1 = ((GenParticle*) genParticles->At( lep1Idx) )->PID;
-  if ( lep2Idx != -1) lep2 = ((GenParticle*) genParticles->At( lep2Idx) )->PID;
-
-  std::cout<<std::endl;
-  int trackingIdx;
-  if ( lep1Idx != -1 ) {
-    trackingIdx = lep1Idx;
-    int upper_count = 0;
-    while( 1 ) {
-      GenParticle* base = (GenParticle*) genParticles->At( trackingIdx);
-      std::cout<< base->PID;
-      if ( abs(base->PID) == 24 ) break;
-      std::cout<<">>";
-      trackingIdx = base->M1;
-      upper_count++;
-    }
-    if ( upper_count >1 ) { std::cout<<"oops"<<std::endl; lep1 = -1; }
-  } 
-  std::cout<<std::endl;
-  if ( lep2Idx != -1 ) {
-    trackingIdx = lep2Idx;
-    int upper_count = 0;
-    while( 1 ) {
-      GenParticle* base = (GenParticle*) genParticles->At( trackingIdx);
-      std::cout<< base->PID;
-      if ( abs(base->PID) == 24 ) break;
-      std::cout<<">>";
-      trackingIdx = base->M1;
-      upper_count++;
-    }
-    if ( upper_count >1 ) { std::cout<<"oops"<<std::endl; lep2 = -1; }
-  } 
-  std::cout<<std::endl;
-
-  int mulValue = lep1*lep2;
-
-  if ( abs(mulValue) > 100 ) { 
-    if ( abs(mulValue) %15 ==0 ) {
-      std::cout<<"Dilepton tau"<<std::endl;
-      return 4;
-    }
-    std::cout<<"Dilepton"<<std::endl;
-    std::cout<<"lep1 :"<<lep1<<"  lep2 : "<<lep2<<std::endl;
-    return 1;
-  }
-  else if ( abs(mulValue) > 10 ) {
-    if ( abs(mulValue) %15 ==0 ) {
-      std::cout<<"Semilepton tau"<<std::endl;
-      return 5;
-    }
-    std::cout<<"Semilepton"<<std::endl;
-    return 2;
-  }
-  else {
-    std::cout<<"Hardronic"<<std::endl;
-    return 3; 
-  }
-
-}
-
-
-void AnalyseEvents(ExRootTreeReader *treeReader, bool isTT = false )
+void AnalyseEvents(ExRootTreeReader *treeReader, TTree* tree, int dataType )
 {
   TClonesArray *branchParticle = treeReader->UseBranch("Particle");
   TClonesArray *branchElectron = treeReader->UseBranch("Electron");
@@ -233,40 +117,56 @@ void AnalyseEvents(ExRootTreeReader *treeReader, bool isTT = false )
 
   cout << "** Chain contains " << allEntries << " events" << endl;
 
+  Data data;
+  BookingTree(tree, data);
 
   int channel[6]={0,0,0,0,0,0};
   //allEntries = 1;
   //Int_t i, j, entry;
   for(int entry = 0; entry < allEntries; ++entry)
   {
+    data.reset();
     treeReader->ReadEntry(entry);
     channel[0]++;
-    channel[ channelSelection( branchParticle )]++;
+    if ( dataType < 4 ) { 
+      DecayChannel dc(branchParticle);
+      data.type = dc.channel();
+      channel[ dc.channel()]++;
+    }
+
+    putData(data, entry);
+    tree->Fill();
   }
-  for( int i= 0 ; i < 6 ; i++) {
-    std::cout<<"Channel : "<<i<<" "<<channel[i]<<"\t"<< (float)channel[i] / (float)channel[0]*100<<"%"<<std::endl;
+
+  if ( dataType < 4 ) {
+    for( int i= 0 ; i < 6 ; i++) {
+      std::cout<<"Channel : "<<i<<" "<<channel[i]<<"\t"<< (float)channel[i] / (float)channel[0]*100<<"%"<<std::endl;
+    }
   }
 }
 
 
 int main(int argc, char* argv[])
 {
-  bool isTT = false;
 
+  int dataType=0;
   if ( argc != 3 && argc !=4  ) {
-    std::cout<<"Wrong argument!"<<std::endl;
+    std::cerr<<"Wrong argument!"<<std::endl;
     exit(-1);
   }
-  
+
+  D(
   std::cout<<argv[0]<<std::endl;
   if ( argc ==4 ) std::cout<<argv[3]<<std::endl;
+  )
   std::string inputFile(argv[1]);
   std::string outFile(argv[2]);
-  
-  if ( argc == 4 && std::atoi(argv[3]) == 1 ) isTT = true;
 
-  std::cout<<"Input : "<<inputFile << "\tOut : "<<outFile<<std::endl;
-  
+
+  if ( argc == 4 ) dataType = std::atoi(argv[3]) ;
+
+  D(std::cout<<"Input : "<<inputFile << "\tOut : "<<outFile<<std::endl;)
+
   TChain *chain = new TChain("Delphes");
   chain->Add(inputFile.c_str());
 
@@ -274,12 +174,11 @@ int main(int argc, char* argv[])
 
   TFile* file = new TFile(outFile.c_str(), "RECREATE");
   TTree* tree = new TTree("delphes","delphes");
-  AnalyseEvents(treeReader, isTT );
-  testTree(tree);
+  AnalyseEvents(treeReader, tree, dataType );
 
   file->Write();
   file->Close();
-  
+
 
   cout << "** Exiting..." << endl;
 
