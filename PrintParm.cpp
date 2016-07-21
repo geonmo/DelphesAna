@@ -1,11 +1,12 @@
 #ifndef NDEBUG
 #define D(x) x 
 #else
-#define D(x) 
+#define D(x)  
 #endif
 
 #include<iostream>
 #include<fstream>
+#include<sstream>
 #include "classes/DelphesClasses.h"
 #include "external/ExRootAnalysis/ExRootTreeReader.h"
 #include "external/ExRootAnalysis/ExRootResult.h"
@@ -22,26 +23,18 @@ class ExRootResult;
 
 struct Data {
   unsigned int nLep;
-  float lep1_pt, lep1_iso;
-  float lep2_pt, lep2_iso;
-  float lep3_pt, lep3_iso;
-  float lep4_pt, lep4_iso;
+  int lep_q[4];
+  float lep_pt[4];
+  float lep_iso[4];
 
-  float dilep1_pt, dilep1_mass;
-  float dilep2_pt, dilep2_mass;
-  float dilep3_pt, dilep3_mass;
-  float dilep4_pt, dilep4_mass;
+  float dilep_pt[4], dilep_mass[4];
 
-  float met, met_phi;
+  float met, met_eta, met_phi;
 
   unsigned int nJet;
-  float jet1_pt, jet1_eta, jet1_phi;
-  float jet2_pt, jet2_eta, jet2_phi;
-  float jet3_pt, jet3_eta, jet3_phi;
-  float jet4_pt, jet4_eta, jet4_phi;
+  float jet_pt[4], jet_eta[4], jet_phi[4];
+  int jet_btag[4];
   unsigned int nbJet;
-  float bjet1_pt, bjet1_eta, bjet1_phi, bjet1_mva;
-  float bjet2_pt, bjet2_eta, bjet2_phi, bjet2_mva;
 
   int type;
 
@@ -50,50 +43,77 @@ struct Data {
   }
   void reset() {
     nLep =0;
-    lep1_pt=0.0; lep1_iso=0.0; 
-    lep2_pt=0.0; lep2_iso=0.0;
-    lep3_pt=0.0; lep3_iso=0.0;
-    lep4_pt=0.0; lep4_iso=0.0;
+    for(int i=0 ; i< 4 ; ++i) {
+      lep_q[i]=0;
+      lep_pt[i]=0.0f;
+      lep_iso[i]=0.0f;
+  
+      dilep_pt[i] = 0.0f;
+      dilep_mass[i] = 0.0f;
 
-    dilep1_pt =0.0; dilep1_mass =0.0;
-    dilep2_pt =0.0; dilep2_mass =0.0;
-    dilep3_pt =0.0; dilep3_mass =0.0;
-    dilep4_pt =0.0; dilep4_mass =0.0;
+      jet_pt[i] = 0.0f;
+      jet_eta[i] = 0.0f;
+      jet_phi[i] = 0.0f;
+      jet_btag[i] = 0;
+    }
 
-    met=0.0; met_phi=0.0;
+    met=0.0f; met_eta=0.0f; met_phi=0.0f;
 
     nJet=0;
-    jet1_pt=0.0, jet1_eta=-999., jet1_phi=0.0;
-    jet2_pt=0.0, jet2_eta=-999., jet2_phi=0.0;
-    jet3_pt=0.0, jet3_eta=-999., jet3_phi=0.0;
-    jet4_pt=0.0, jet4_eta=-999., jet4_phi=0.0;
 
     nbJet=0;
-    bjet1_pt=0.0, bjet1_eta=-999, bjet1_phi=0.0, bjet1_mva=0.0;
-    bjet2_pt=0.0, bjet2_eta=-999, bjet2_phi=0.0, bjet2_mva=0.0;
     type = 0;
+  }
+
+  std::string print() {
+    ostringstream ost;
+    ost<<nLep<<",";
+    for ( int i=0 ; i< 4 ; ++i) {
+      ost<<lep_pt[i]<<","<<lep_iso[i]<<","<<lep_q[i]<<",";
+    }
+    for ( int i=0 ; i< 4 ; ++i) {
+      ost<<dilep_pt[i]<<","<<dilep_mass[i]<<",";
+    }
+
+    ost<<met<<","<<met_eta<<","<<met_phi<<",";
+
+    ost<<nJet<<",";
+    for ( int i=0 ; i< 4 ; ++i) {
+      ost<<jet_pt[i]<<","<<jet_eta[i]<<","<<jet_phi[i]<<","<<jet_btag[i]<<",";
+    }
+
+    ost<<nbJet<<",";
+
+    D( std::cout<<"type : "<<type<<std::endl; )
+    for( int i=0 ; i< type ; ++i) ost<<"0,";
+    ost<<"1,";
+    for( int i=0 ; i< 10-type ; ++i) ost<<"0,";
+    ost<<"0";
+    D( std::cout<<"4"<<std::endl; )
+    return ost.str();
   }
 }; 
 
 
 
 void BookingTree(TTree* tree, Data& data) {
-  tree->Branch("data",&data,"nLep/i:lep1_pt/F:lep1_iso:lep2_pt:lep2_iso:lep3_pt:lep3_iso:lep4_pt:lep4_iso:dilep1_pt:dilep1_mass:dilep2_pt:dilep2_mass:dilep3_pt:dilep3_mass:dilep4_pt:dilep4_mass:met:met_phi:nJet/i:jet1_pt/F:jet1_eta:jet1_phi:jet2_pt:jet2_eta:jet2_phi:jet3_pt:jet3_eta:jet3_phi:jet4_pt:jet4_eta:jet4_phi:nbJet/i:bjet1_pt/F:bjet1_eta:bjet1_phi:bjet1_mva:bjet2_pt/F:bjet2_eta:bjet2_phi:bjet2_mva:type/i");
+  tree->Branch("data",&data,"nLep/i:lep_q[4]/I:lep_pt[4]/F:lep_iso[4]/F:dilep_pt[4]/F:dilep_mass[4]/F:met/F:met_eta:met_phi:nJet/i:jet_pt[4]/F:jet_eta[4]/F:jet_phi[4]/F:jet_btag[4]/I:nbJet/i:type/I");
 }
 
 
 void putData(Data& data, int i){
   data.nLep=i;
-  data.lep1_pt= (float)i;
-  data.lep1_iso= (float)i;
-  data.lep2_pt= (float)i;
-  data.lep2_iso= (float)i;
-  data.lep3_pt= (float)i;
-  data.lep3_iso= (float)i;
-  data.lep4_pt= (float)i;
-  data.lep4_iso= (float)i;
-  data.bjet2_eta = (float)i;
-  data.bjet1_mva = (float)i;
+  data.lep_q[0] = i;
+  data.lep_pt[0]  = (float)i;
+  data.lep_iso[0] = (float)i;
+  data.lep_pt[1]  = (float)i;
+  data.lep_iso[1] = (float)i;
+  data.lep_pt[2] = (float)i;
+  data.lep_iso[2]= (float)i;
+  data.lep_pt[3]  = (float)i;
+  data.lep_iso[3] = (float)i;
+  data.jet_btag[1]= i%2;
+  data.jet_btag[2] = i%2;
 }
 
 
@@ -104,12 +124,14 @@ void PrintParameters(ofstream& outfile, TTree* tree)
 
 }
 
-void AnalyseEvents(ExRootTreeReader *treeReader, TTree* tree, int dataType )
+
+void AnalyseEvents(ExRootTreeReader *treeReader, TTree* tree, int dataType, std::string csvOutFile )
 {
   TClonesArray *branchParticle = treeReader->UseBranch("Particle");
   TClonesArray *branchElectron = treeReader->UseBranch("Electron");
   TClonesArray *branchPhoton = treeReader->UseBranch("Photon");
   TClonesArray *branchMuon = treeReader->UseBranch("Muon");
+  TClonesArray *branchMissingET = treeReader->UseBranch("MissingET");
 
   TClonesArray *branchJet = treeReader->UseBranch("Jet");
 
@@ -120,26 +142,101 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TTree* tree, int dataType )
   Data data;
   BookingTree(tree, data);
 
-  int channel[6]={0,0,0,0,0,0};
+  int channel[9]={0,0,0,0,0,0,0,0,0};
   //allEntries = 1;
   //Int_t i, j, entry;
+  ofstream os( csvOutFile, ios::out);
   for(int entry = 0; entry < allEntries; ++entry)
   {
+    D( std::cout<<"Event : "<<entry<<std::endl; )
     data.reset();
     treeReader->ReadEntry(entry);
     channel[0]++;
     if ( dataType < 4 ) { 
       DecayChannel dc(branchParticle);
       data.type = dc.channel();
-      channel[ dc.channel()]++;
+      D(std::cout<<"channel : "<<data.type<<std::endl;)
+      channel[ dc.channel()+1]++;
     }
 
-    putData(data, entry);
+
+    // Lepton Part
+    typedef std::pair<int, float> QI;
+    typedef std::pair<TLorentzVector, QI > PQI;
+    vector<PQI> leptons;
+    for( int i=0 ; i< branchMuon->GetEntriesFast() ; ++i) {
+      Muon* mu = (Muon*)( branchMuon->At(i));
+      leptons.push_back( make_pair(mu->P4(), make_pair(mu->Charge, mu->IsolationVar)));
+      D( std::cout<<"Put muon"<<std::endl; 
+         std::cout<<"Muon iso: "<<mu->IsolationVar<<std::endl;
+      )
+    }
+    for( int i=0 ; i< branchElectron->GetEntriesFast() ; ++i) {
+      if ( i>=2 ) break;
+      Electron* el = (Electron*)( branchElectron->At(i));
+      leptons.push_back( make_pair(el->P4(), make_pair(el->Charge, el->IsolationVar)));
+      D( std::cout<<"Put Electron"<<std::endl; 
+         std::cout<<"Electron iso: "<<el->IsolationVar<<std::endl;
+      ) 
+    }
+    std::sort(leptons.begin(), leptons.end(), [](PQI &left, PQI &right) {
+      return left.first.Pt() < right.first.Pt();  }); 
+
+    D( std::cout<<"Lepton size : "<< leptons.size()<<std::endl; )
+    data.nLep = leptons.size(); 
+    if ( leptons.size() >=2 ) channel[6]++;
+    else if ( leptons.size() ==1 ) channel[7]++;
+    else if ( leptons.size() ==0 ) channel[8]++;
+
+    D( std::cout<<"LL"<<std::endl; )
+    // If sorting is required, you need to FIX IT.
+    //std::sort(leptons.begin(), leptons.end(), );
+    for(int idx=0 ; idx< leptons.size() ; ++idx ) {
+      if ( idx >= 4) break;
+      data.lep_q[idx]   = leptons[idx].second.first;
+      data.lep_iso[idx] = leptons[idx].second.second;
+      data.lep_pt[idx]  = leptons[idx].first.Pt();
+    }
+    int dilepton_idx=0;
+    if ( leptons.size() >2) {
+      for(int i = 0 ; i < leptons.size()-1 ; ++i){
+        for(int j = i+1; j< leptons.size() ; ++j ) {
+          if( leptons[i].second.first * leptons[j].second.first != -1 ) continue;
+          data.dilep_pt[dilepton_idx]   = (leptons[i].first+leptons[j].first).Pt();
+          data.dilep_mass[dilepton_idx] = (leptons[i].first+leptons[j].first).M();
+          dilepton_idx++;
+        }
+      }
+    }
+    for( int i=0 ; i< branchMissingET->GetEntriesFast() ; ++i) {
+      D( if ( i>2 ) std::cout<<"Did you have 2nd MET? : size -> "<<branchMissingET->GetEntriesFast()<<std::endl;)
+      MissingET* met = (MissingET*)( branchMissingET->At(i));
+      data.met=met->MET;
+      data.met_eta = met->Eta;
+      data.met_phi = met->Phi;
+    }
+    data.nJet = branchJet->GetEntriesFast();
+    for( int i=0 ; i< branchJet->GetEntriesFast() ; ++i) {
+      if ( i>=4 ) break;
+      Jet* jet = (Jet*)( branchJet->At(i));
+      data.jet_pt[i] = jet->PT;
+      data.jet_eta[i] = jet->Eta;
+      data.jet_phi[i] = jet->Phi;
+      data.jet_btag[i] = jet->BTag;
+      if( jet->BTag ) data.nbJet++;
+    }
+     
+    D(std::cout<<data.print()<<std::endl;)
+    if ( !csvOutFile.empty() ) {
+      D(std::cout<<"csv file will be written."<<std::endl;)
+      os<<data.print()<<"\n";
+    }
     tree->Fill();
   }
+  os.close(); 
 
   if ( dataType < 4 ) {
-    for( int i= 0 ; i < 6 ; i++) {
+    for( int i= 0 ; i < 9 ; i++) {
       std::cout<<"Channel : "<<i<<" "<<channel[i]<<"\t"<< (float)channel[i] / (float)channel[0]*100<<"%"<<std::endl;
     }
   }
@@ -150,7 +247,8 @@ int main(int argc, char* argv[])
 {
 
   int dataType=0;
-  if ( argc != 3 && argc !=4  ) {
+  std::string csvOutFile="";
+  if ( argc != 3 && argc !=4 && argc !=5 ) {
     std::cerr<<"Wrong argument!"<<std::endl;
     exit(-1);
   }
@@ -158,12 +256,14 @@ int main(int argc, char* argv[])
   D(
   std::cout<<argv[0]<<std::endl;
   if ( argc ==4 ) std::cout<<argv[3]<<std::endl;
+  if ( argc ==5 ) std::cout<<argv[4]<<std::endl;
   )
   std::string inputFile(argv[1]);
   std::string outFile(argv[2]);
 
 
   if ( argc == 4 ) dataType = std::atoi(argv[3]) ;
+  if ( argc == 5 ) csvOutFile = std::string(argv[4]);
 
   D(std::cout<<"Input : "<<inputFile << "\tOut : "<<outFile<<std::endl;)
 
@@ -174,7 +274,7 @@ int main(int argc, char* argv[])
 
   TFile* file = new TFile(outFile.c_str(), "RECREATE");
   TTree* tree = new TTree("delphes","delphes");
-  AnalyseEvents(treeReader, tree, dataType );
+  AnalyseEvents(treeReader, tree, dataType, csvOutFile );
 
   file->Write();
   file->Close();

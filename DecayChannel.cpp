@@ -1,7 +1,7 @@
 #ifndef NDEBUG
 #define D(x) x 
 #else
-#define D(x) 
+#define D(x)  
 #endif
 
 #include<iostream>
@@ -16,7 +16,7 @@ class ExRootTreeReader;
 
 DecayChannel::DecayChannel( TClonesArray* genParticles){
   channel_ = channelSelection(genParticles ) ;   
-   
+
 }
 int DecayChannel::FindWboson(TClonesArray* genParticles, int baseIdx )
 {
@@ -58,12 +58,12 @@ int DecayChannel::channelSelection( TClonesArray* genParticles  ) {
   // searcing Top or anti top
   int nGenParticle = genParticles->GetEntriesFast();
   D( std::cout<<"Num of genParticles : "<<nGenParticle<<std::endl; )
-  int top_idx =-1, antitop_idx=-1;
+    int top_idx =-1, antitop_idx=-1;
 
   for (int  i =0 ; i < nGenParticle ; ++i) {
     GenParticle* genParticle = (GenParticle*) genParticles->At(i);
     D( std::cout<<"genParticle PID : "<<genParticle->PID<<std::endl; )
-    if ( top_idx==-1 && genParticle->PID == 6) top_idx= i;
+      if ( top_idx==-1 && genParticle->PID == 6) top_idx= i;
     if ( antitop_idx==-1 && genParticle->PID == -6 ) antitop_idx= i;
     if ( top_idx !=-1 && antitop_idx != -1 ) break;
   }
@@ -77,8 +77,17 @@ int DecayChannel::channelSelection( TClonesArray* genParticles  ) {
   int lep1Idx = FindLepton( genParticles, WbosonIdx1);
   int lep2Idx = FindLepton( genParticles, WbosonIdx2);
   int lep1=-1, lep2=-1;
-  if ( lep1Idx != -1) lep1 = ((GenParticle*) genParticles->At( lep1Idx) )->PID;
-  if ( lep2Idx != -1) lep2 = ((GenParticle*) genParticles->At( lep2Idx) )->PID;
+  float lep1PT=0.0, lep2PT=0.0;
+  if ( lep1Idx != -1) { 
+    GenParticle* lep1Part = ((GenParticle*) genParticles->At( lep1Idx) );
+    lep1 = lep1Part->PID;
+    lep1PT = lep1Part->PT;
+  }
+  if ( lep2Idx != -1) {
+    GenParticle* lep2Part = ((GenParticle*) genParticles->At( lep2Idx) );
+    lep2 = lep2Part->PID;
+    lep2PT = lep2Part->PT;
+  }
 
   D(std::cout<<std::endl;)
     int trackingIdx;
@@ -88,7 +97,7 @@ int DecayChannel::channelSelection( TClonesArray* genParticles  ) {
     while( 1 ) {
       GenParticle* base = (GenParticle*) genParticles->At( trackingIdx);
       D(std::cout<< base->PID;)
-        if ( abs(base->PID) == 24 ) break;
+        if ( abs(base->PID) == 24 ) {break;}
       D(std::cout<<">>";)
         trackingIdx = base->M1;
       upper_count++;
@@ -96,6 +105,7 @@ int DecayChannel::channelSelection( TClonesArray* genParticles  ) {
     if ( upper_count >1 ) { 
       D(std::cout<<"oops"<<std::endl;) 
         lep1 = -1; 
+      lep1Idx = -1; 
     }
   } 
   D(std::cout<<std::endl;)
@@ -105,7 +115,7 @@ int DecayChannel::channelSelection( TClonesArray* genParticles  ) {
       while( 1 ) {
         GenParticle* base = (GenParticle*) genParticles->At( trackingIdx);
         D(std::cout<< base->PID;)
-          if ( abs(base->PID) == 24 ) break;
+          if ( abs(base->PID) == 24 ) {break;}
         D(std::cout<<">>";)
           trackingIdx = base->M1;
         upper_count++;
@@ -113,33 +123,42 @@ int DecayChannel::channelSelection( TClonesArray* genParticles  ) {
       if ( upper_count >1 ) { 
         D(std::cout<<"oops"<<std::endl; )
           lep2 = -1; 
+        lep2Idx = -1; 
       }
     } 
   D(std::cout<<std::endl;)
 
     int mulValue = lep1*lep2;
 
+  if ( lep1Idx != -1 ) {
+    D(std::cout<<"Lep1 PT : "<<lep1PT<<std::endl; )
+  }
+  if ( lep2Idx != -1 ) {
+    D(std::cout<<"Lep2 PT : "<<lep2PT<<std::endl; )
+  }
+
   if ( abs(mulValue) > 100 ) { 
     if ( abs(mulValue) %15 ==0 ) {
       D(std::cout<<"Dilepton tau"<<std::endl;)
-        return 4;
+        return 3;
     }
     D(std::cout<<"Dilepton"<<std::endl;)
       D(std::cout<<"lep1 :"<<lep1<<"  lep2 : "<<lep2<<std::endl;)
-      return 1;
+      return 0;
   }
   else if ( abs(mulValue) > 10 ) {
     if ( abs(mulValue) %15 ==0 ) {
       D(std::cout<<"Semilepton tau"<<std::endl;)
-        return 5;
+        return 4;
     }
     D(std::cout<<"Semilepton"<<std::endl;)
-      return 2;
+      return 1;
   }
   else {
     D(std::cout<<"Hardronic"<<std::endl;)
-      return 3; 
+      return 2; 
   }
+  return -1;
 
 }
 
