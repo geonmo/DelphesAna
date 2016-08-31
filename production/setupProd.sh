@@ -4,7 +4,6 @@ wget https://github.com/delphes/delphes/archive/master.zip
 unzip master.zip
 #tar -zxf Delphes-3.3.2.tar.gz
 mv delphes-master delphesCode
-cp DelphesCMSFWLite.cpp delphesCode/readers 
 
 cd delphesCode
 ./configure
