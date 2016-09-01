@@ -1,8 +1,6 @@
 #ifndef CATTools_CatAnalyzer_KinematicSolvers_H
 #define CATTools_CatAnalyzer_KinematicSolvers_H
 
-#include "FWCore/Utilities/interface/RandomNumberGenerator.h"
-#include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "CLHEP/Random/RandomEngine.h"
 #include "Math/LorentzVector.h"
 #include <string>
