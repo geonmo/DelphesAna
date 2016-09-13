@@ -6,6 +6,7 @@
 #include "TFile.h"
 #include "TRandom3.h"
 #include "analysisUtils.h"
+#include "Math/GenVector/LorentzVector.h"
 using namespace cat;
 using namespace std;
 using namespace ROOT;
@@ -70,7 +71,7 @@ double fminimize(const gsl_vector* xx, void* p)
 
 }
 
-MT2Solver::MT2Solver(const edm::ParameterSet& pset): KinematicSolver(pset)
+MT2Solver::MT2Solver()
 {
 }
 
@@ -152,12 +153,12 @@ void MAOSSolver::solve(const LV input[])
 
 }
 
-CMSKinSolver::CMSKinSolver(const edm::ParameterSet& pset): KinematicSolver(pset)
+CMSKinSolver::CMSKinSolver(): KinematicSolver() 
 {
-  const double tMassBegin = pset.getParameter<double>("tMassBegin");
-  const double tMassEnd   = pset.getParameter<double>("tMassEnd");
-  const double tMassStep  = pset.getParameter<double>("tMassStep");
-  std::vector<double> nuPars = pset.getParameter<std::vector<double> >("nuPars");
+  const double tMassBegin = 100.; 
+  const double tMassEnd   = 300.;
+  const double tMassStep  = 0.5;
+  std::vector<double> nuPars = {27.23,53.88,19.92,53.89,19.9};
   solver_.reset(new TtFullLepKinSolver(tMassBegin, tMassEnd, tMassStep, nuPars));
 }
 
@@ -188,11 +189,10 @@ void CMSKinSolver::solve(const LV input[])
   sol_.setSolution(quality, nu1, nu2, values);
 }
 
-DESYMassLoopSolver::DESYMassLoopSolver(const edm::ParameterSet& pset):
-  KinematicSolver(pset),
-  tMassBegin_(pset.getParameter<double>("tMassBegin")),
-  tMassEnd_(pset.getParameter<double>("tMassEnd")),
-  tMassStep_(pset.getParameter<double>("tMassStep"))
+DESYMassLoopSolver::DESYMassLoopSolver():  KinematicSolver(),
+  tMassBegin_(100),
+  tMassEnd_(300),
+  tMassStep_(0.5)
 {
 }
 
@@ -211,7 +211,7 @@ void DESYMassLoopSolver::solve(const LV input[])
   const double b4 = (j1E*l1.pz()-l1E*j1.pz())/l1E/(j1E+l1E);
 
   double quality = sol_.quality(); // Just take the default quality value for initial input
-  math::XYZTLorentzVector nu1, nu2;
+  LV nu1, nu2;
   std::vector<double> koef, cache, sols;
   for ( double mTop = tMassBegin_; mTop < tMassEnd_+0.5*tMassStep_; mTop += tMassStep_ ) {
     KinSolverUtils::findCoeffs(mTop, 80.4, 80.4, l1, l2, j1, j2, metX, metY, koef, cache);
@@ -241,16 +241,16 @@ void DESYMassLoopSolver::solve(const LV input[])
   sol_.setSolution(quality, nu1, nu2);
 }
 
-DESYSmearedSolver::DESYSmearedSolver(const edm::ParameterSet& pset):
-  KinematicSolver(pset),
-  nTrial_(pset.getParameter<int>("nTrial")),
-  maxLBMass_(pset.getParameter<double>("maxLBMass")),
-  mTopInput_(pset.getParameter<double>("mTopInput"))
+DESYSmearedSolver::DESYSmearedSolver():
+  KinematicSolver(),
+  nTrial_(100),
+  maxLBMass_(360),
+  mTopInput_(172.5)
 {
   rng_ = 0;
 
-  const auto filePath = pset.getParameter<string>("inputTemplatePath");
-  TFile* f = TFile::Open(edm::FileInPath(filePath).fullPath().c_str());
+  const char* filePath = "$CMSSW_BASE/src/DelphesAna/src/KoreaDesyKinRecoInput.root";
+  TFile* f = TFile::Open(filePath);
 
   h_jetEres_.reset(dynamic_cast<TH1*>(f->Get("KinReco_fE_jet_step7")));
   h_jetAres_.reset(dynamic_cast<TH1*>(f->Get("KinReco_d_angle_jet_step7")));
@@ -377,8 +377,8 @@ void DESYSmearedSolver::solve(const LV input[])
   j2.SetXYZT(sumP[3][0], sumP[3][1], sumP[3][2], KinSolverUtils::computeEnergy(sumP[3], j2.M()));//KinSolverUtils::mB));
 
   sol_.setVisible(l1, l2, j1, j2);
-  const math::XYZTLorentzVector nu1(sumP[4][0], sumP[4][1], sumP[4][2], KinSolverUtils::computeEnergy(sumP[4], KinSolverUtils::mV));
-  const math::XYZTLorentzVector nu2(sumP[5][0], sumP[5][1], sumP[5][2], KinSolverUtils::computeEnergy(sumP[5], KinSolverUtils::mV));
+  const LV nu1(sumP[4][0], sumP[4][1], sumP[4][2], KinSolverUtils::computeEnergy(sumP[4], KinSolverUtils::mV));
+  const LV nu2(sumP[5][0], sumP[5][1], sumP[5][2], KinSolverUtils::computeEnergy(sumP[5], KinSolverUtils::mV));
   sol_.setSolution(sumW, nu1, nu2);
   sol_.t1_ = l1+j1+nu1;
   sol_.t2_ = l2+j2+nu2;
