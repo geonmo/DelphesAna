@@ -9,7 +9,7 @@
 #include <TObjArray.h>
 #include <Rtypes.h>
 
-#include "CATTools/CatAnalyzer/interface/sampleHelpers.h"
+#include <sampleHelpers.h>
 
 
 

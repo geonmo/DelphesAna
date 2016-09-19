@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 project (DelphesAnalysis)
 
-
+set(ENV{DelphesAnaPath} "${CMAKE_SOURCE_DIR}")
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}")
 find_package(CLHEPM)
 find_package(GSL)

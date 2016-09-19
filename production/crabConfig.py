@@ -31,8 +31,11 @@ config.Data.inputDBS = 'global'
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1
 #config.Data.totalUnits = 10000
-config.Data.outLFNDirBase = '/store/user/%s/DelphesAna_201607/' % (getUsernameFromSiteDB())
+config.Data.outLFNDirBase = '/store/user/%s/DelphesAna_201609/' % (getUsernameFromSiteDB())
 config.Data.publication = False
-config.Data.outputDatasetTag = 'DelphesProduction_%d'%(index)
 
-config.Site.storageSite = 'T3_KR_UOS'
+
+name = config.Data.inputDataset.split("/")[1]
+config.Data.outputDatasetTag = '%s_%d'%(name, index)
+
+config.Site.storageSite = 'T3_KR_KISTI'

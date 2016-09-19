@@ -3,6 +3,8 @@ project (DelphesAnalysis)
 
 add_executable(JetTestAna JetTestAna.cpp)
 add_executable(PrintParm  PrintParm.cpp)
+add_executable(JetCharge  JetCharge.cpp)
 target_link_libraries(JetTestAna Delphes ${ROOT_LIBRARIES})
 target_link_libraries(PrintParm Delphes ${ROOT_LIBRARIES} DecayChannel)
+target_link_libraries(JetCharge Delphes ${ROOT_LIBRARIES} CMSKin DecayChannel)
 #target_link_libraries(decayChannel Delphes ${ROOT_LIBRARIES})

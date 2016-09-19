@@ -37,6 +37,7 @@ TtFullLepKinSolver::~TtFullLepKinSolver()
   delete EventShape_;
 }
 
+/*
 TtDilepEvtSolution TtFullLepKinSolver::addKinSolInfo(TtDilepEvtSolution * asol) 
 {
   TtDilepEvtSolution fitsol(*asol);
@@ -126,7 +127,7 @@ TtDilepEvtSolution TtFullLepKinSolver::addKinSolInfo(TtDilepEvtSolution * asol)
   
   return fitsol;
 }
-
+*/
 void
 TtFullLepKinSolver::SetConstraints(const double xx, const double yy)
 {
@@ -141,7 +142,7 @@ TtFullLepKinSolver::getNuSolution(const TLorentzVector& LV_l,
 				  const TLorentzVector& LV_b_)
 {
   TLorentzVector maxLV_n(0,0,0,0); 
-  TLorentzVector maxLV_n(0,0,0,0);   
+  TLorentzVector maxLV_n_(0,0,0,0);   
 
   //loop on top mass parameter
   double weightmax = -1;
@@ -165,12 +166,12 @@ TtFullLepKinSolver::getNuSolution(const TLorentzVector& LV_l,
   }
   TtFullLepKinSolver::NeutrinoSolution nuSol;
   auto nu1 = MissingET();
-  nu1.ET = maxLV_n.Et();
+  nu1.MET = maxLV_n.Et();
   nu1.Eta = maxLV_n.Eta();
   nu1.Phi = maxLV_n.Phi();
 
   auto nu2 = MissingET();
-  nu2.ET = maxLV_n.Et();
+  nu2.MET = maxLV_n.Et();
   nu2.Eta = maxLV_n.Eta();
   nu2.Phi = maxLV_n.Phi();
 

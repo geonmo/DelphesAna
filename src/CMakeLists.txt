@@ -3,7 +3,7 @@ project (DelphesAnalysis)
 
 add_library(DecayChannel SHARED DecayChannel.cpp)
 
-file(GLOB KINFILES Kinematic*.cc TopKinSolver*.cc analysisUtils.cc sampleHelpers.cc)
+file(GLOB KINFILES *.cc)
 
 
 add_library(CMSKin SHARED ${KINFILES})
