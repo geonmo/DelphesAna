@@ -1,9 +1,8 @@
-
 #!/usr/bin/env python
 import os
 
 datasetList = open("dataset_miniaod.txt").readlines()
-
+print "File is opened."
 for dataset in datasetList :
 
   dataset=  dataset.strip()
