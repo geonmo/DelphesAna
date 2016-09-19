@@ -2,7 +2,7 @@
 #!/usr/bin/env python
 import os
 
-datasetList = open("dataset_miniaod2.txt").readlines()
+datasetList = open("dataset_miniaod.txt").readlines()
 
 for dataset in datasetList :
 
