@@ -20,8 +20,10 @@ endif (GSL_FOUND)
 include_directories(${CMAKE_SOURCE_DIR}/production/delphesCode ${CMAKE_SOURCE_DIR}/include)
 link_directories(${CMAKE_SOURCE_DIR}/production/delphesCode ${CMAKE_SOURCE_DIR}/lib)
 
+
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
-find_package(ROOT REQUIRED COMPONENTS RIO Net PATHS $ENV{ROOTSYS})
+find_package(ROOT REQUIRED COMPONENTS GenVector Gui Core RIO Net Hist Graf Graf3d Gpad Tree Rint Postscript Matrix Physics MathCore Thread PATHS $ENV{ROOTSYS})
+#find_package(ROOT)
 include(${ROOT_USE_FILE})
 
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ROOT_CXX_FLAGS}")

@@ -6,12 +6,11 @@
 #include <string>
 #include <memory>
 #include "TH1.h"
-
+#include <classes.h>
 class TtFullLepKinSolver;
 
 namespace cat {
 
-typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > LV;
 class KinematicSolver;
 
 struct KinematicSolution
