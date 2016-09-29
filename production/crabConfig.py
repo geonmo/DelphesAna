@@ -16,7 +16,7 @@ config.General.transferLogs = True
 
 config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = 'pset_delphes.py'
-config.JobType.inputFiles = ['runDelphes.sh', 'delphesProd.tar.gz']
+config.JobType.inputFiles = ['runDelphes.sh', 'delphesProd.tar.gz', 'delphes_card_CMSPU_mod.tcl']
 config.JobType.outputFiles = ['Delphes.root']
 config.JobType.scriptExe = 'runDelphes.sh'
 config.JobType.allowUndistributedCMSSW = True
@@ -31,8 +31,10 @@ config.Data.inputDBS = 'global'
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1
 #config.Data.totalUnits = 10000
-config.Data.outLFNDirBase = '/store/user/%s/DelphesAna_201607/' % (getUsernameFromSiteDB())
+config.Data.outLFNDirBase = '/store/user/%s/DelphesAna_201610_Test/' % (getUsernameFromSiteDB())
 config.Data.publication = False
-config.Data.outputDatasetTag = 'DelphesProduction_%d'%(index)
+name = config.Data.inputDataset.split("/")[1]
+config.Data.outputDatasetTag = '%s_%d'%(name, index)
 
-config.Site.storageSite = 'T3_KR_UOS'
+config.Site.storageSite = 'T3_KR_KISTI'
+
