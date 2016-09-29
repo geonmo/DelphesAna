@@ -18,6 +18,50 @@ DecayChannel::DecayChannel( TClonesArray* genParticles){
   channel_ = channelSelection(genParticles ) ;   
 
 }
+
+int DecayChannel::FindJetParton(TClonesArray* genParticles, int baseIdx) {
+  if ( baseIdx <0 ) return -1;
+  GenParticle* base = (GenParticle*)genParticles->At(baseIdx);
+  int absPID = abs(base->PID);
+  std::cout<<"abs PID : "<<absPID<<std::endl;
+  if ( absPID < 6 ) return baseIdx;
+
+  // First, M1
+  if ( base->M1 !=-1 ) {
+    int nextResult = FindJetParton( genParticles, base->M1);
+    if ( nextResult !=-1 ) return nextResult;
+  }
+  return -1;
+
+}
+
+int DecayChannel::FindJetParton(TClonesArray* genParticles, Jet* jet) {
+  int value = -1;
+  GenParticle* particle ;
+  for ( unsigned int i=0 ; i< jet->Constituents.GetEntriesFast() ; i++ ) {
+    TObject* object = jet->Constituents.At(i) ; 
+    if ( object ==0 ) continue;
+    if ( object->IsA() == GenParticle::Class()) {
+      particle = (GenParticle*)object;
+      return value;
+    }
+    else if ( object->IsA() == Track::Class()) {
+      Track* track = (Track*) object;
+      particle = (GenParticle*)track->Particle.GetObject();
+    }
+    /*
+    else if ( object->IsA() == Tower::Class()) {
+      Tower* tower = (Tower*) object;
+      particle = (GenParticle*)tower->Particles.At(0);
+    }
+    */
+    else continue; 
+    value = FindJetParton(genParticles,  particle->M1);
+    return value;
+  } 
+}
+
+
 int DecayChannel::FindWboson(TClonesArray* genParticles, int baseIdx )
 {
   GenParticle* base = (GenParticle*)genParticles->At(baseIdx);

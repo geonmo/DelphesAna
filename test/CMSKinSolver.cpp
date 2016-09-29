@@ -26,10 +26,10 @@ public :
   float jet_pt[2]; 
   float jet_eta[2]; 
   float jet_phi[2]; 
-  int jet_charge[2];
-  int jet_parton[2]; 
-  int ljet_charge[2]; 
-  int jet_btag[2];
+  int bjet_charge[2];
+  int bjet_partonPdgId[2]; 
+  int lep_charge[2];
+  int bjet_btag[2];
   JetTree() {
     init();
   }
@@ -40,10 +40,10 @@ public :
       jet_pt[i]=0.f;
       jet_eta[i]=-9.f;
       jet_phi[i]=-9.f;
-      jet_charge[i]=-9;
-      jet_parton[i] = 0 ;
-      jet_btag[i]= 0;
-      ljet_charge[i]=-9;
+      bjet_charge[i]=-9;
+      bjet_partonPdgId[i] = 0 ;
+      bjet_btag[i]= 0;
+      bjet_charge[i]=-9;
     }
   }
 };
@@ -169,7 +169,7 @@ std::vector<QJET> selectedJet( TClonesArray* jets ) {
   for(int i = 0; i < jets->GetEntriesFast(); ++i)
   {
     Jet* jet = (Jet*) jets->At(i);
-    if ( jet->PT < 30 || abs(jet->Eta)>2.5 ) continue;
+    if ( jet->PT < 20 || abs(jet->Eta)>2.5 ) continue;
     selJets.push_back( make_pair(jet->Charge, jet) );
   }
   return selJets; 
@@ -197,7 +197,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
   TClonesArray *branchMET = treeReader->UseBranch("MissingET");
   
   
-  TClonesArray *branchJet = treeReader->UseBranch("Jet");
+  TClonesArray *branchJet = treeReader->UseBranch("GenJet");
 
   Long64_t allEntries = treeReader->GetEntries();
 
@@ -237,6 +237,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
     if ( met->MET<40 ) continue;
     //std::cout<<"Pass MET cut"<<std::endl;
     nevt->Fill(6);
+    ofc.GetTH1("nJet")->Fill( selJet.size() );
 
 
     ofc.data.reset();
@@ -251,28 +252,28 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
         const LV POG[] = { common::TLVtoLV(met->P4()), selLepton[0].second, selLepton[1].second, jet1, jet2}; 
         cmskin_solver->solve(POG);
         double quality = cmskin_solver->quality(); 
-        if (quality<0) continue; 
+        //if (quality<0) continue; 
         ofc.data.jet_pt[0] = jet1.pt();
         ofc.data.jet_eta[0] = jet1.eta();
         ofc.data.jet_phi[0] = jet1.phi();
-        ofc.data.jet_charge[0] = selJet[i].first;
+        ofc.data.bjet_charge[0] = selJet[i].first;
        
         int jet1_parton_idx = dc.FindJetParton( branchParticle, selJet[i].second);
-        if ( jet1_parton_idx != -1 ) ofc.data.jet_parton[0] = ((GenParticle*)branchParticle->At(jet1_parton_idx))->PID; 
-        else ofc.data.jet_parton[0] = 0;
+        if ( jet1_parton_idx != -1 ) ofc.data.bjet_partonPdgId[0] = ((GenParticle*)branchParticle->At(jet1_parton_idx))->PID; 
+        else ofc.data.bjet_partonPdgId[0] = 0;
 
-        ofc.data.ljet_charge[0] = selLepton[0].first*selJet[i].first;
-        ofc.data.jet_btag[0] = selJet[i].second->BTag;
+        ofc.data.lep_charge[0] = selLepton[0].first;
+        ofc.data.bjet_btag[0] = selJet[i].second->BTag;
 
         ofc.data.jet_pt[1] = jet2.pt();
         ofc.data.jet_eta[1] = jet2.eta();
         ofc.data.jet_phi[1] = jet2.phi();
-        ofc.data.jet_charge[1] = selJet[j].first;
+        ofc.data.bjet_charge[1] = selJet[j].first;
         int jet2_parton_idx = dc.FindJetParton( branchParticle, selJet[j].second);
-        if ( jet2_parton_idx != -1 ) ofc.data.jet_parton[1] = ((GenParticle*)branchParticle->At(jet2_parton_idx))->PID; 
-        else ofc.data.jet_parton[1] = 0;
-        ofc.data.ljet_charge[1] = selLepton[1].first*selJet[j].first;
-        ofc.data.jet_btag[1] = selJet[i].second->BTag;
+        if ( jet2_parton_idx != -1 ) ofc.data.bjet_partonPdgId[1] = ((GenParticle*)branchParticle->At(jet2_parton_idx))->PID; 
+        else ofc.data.bjet_partonPdgId[1] = 0;
+        ofc.data.lep_charge[1] = selLepton[1].first;
+        ofc.data.bjet_btag[1] = selJet[i].second->BTag;
 
 
         // for jet2,
@@ -318,6 +319,9 @@ void BookingHist(OutFileClass& ofc)
   xaxis->SetBinLabel(5,"nJet2");
   xaxis->SetBinLabel(6,"MET40");
   ofc.AddTH1(h1);
+
+  TH1F* h2 = new TH1F("nJet","Number of Jets",10,0,10);
+  ofc.AddTH1(h2);
 }
   
 
@@ -337,7 +341,7 @@ int main(int argc, char* argv[])
   TFile* file = TFile::Open(outputFile,"RECREATE"); 
   auto ofc = OutFileClass(file);
   BookingHist(ofc);
-  BookingTree(ofc,"JetTree", "weight/F:jet_pt[2]/F:jet_eta[2]/F:jet_phi[2]/F:jet_charge[2]/I:jet_parton[2]/I:ljet_charge[2]/I:jet_btag[2]/I");
+  BookingTree(ofc,"JetTree", "quality/F:jet_pt[2]/F:jet_eta[2]/F:jet_phi[2]/F:bjet_charge[2]/I:bjet_partonPdgId[2]/I:lep_charge[2]/I:bjet_btag[2]/I");
   AnalyseEvents(treeReader,ofc);
 
   Write(ofc);
