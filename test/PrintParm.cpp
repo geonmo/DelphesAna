@@ -158,7 +158,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TTree* tree, int dataType, std:
       D(std::cout<<"channel : "<<data.type<<std::endl;)
       channel[ dc.channel()+1]++;
     }
-
+    else data.type = dataType;
 
     // Lepton Part
     typedef std::pair<int, float> QI;
