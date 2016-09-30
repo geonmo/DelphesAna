@@ -15,7 +15,7 @@
 #include <DecayChannel.h>
 #include <KinematicSolvers.h>
 #include <analysisUtils.h>
-
+#include <TRandom3.h>
 using namespace std;
 
 class ExRootTreeReader;
@@ -175,6 +175,31 @@ std::vector<QJET> selectedJet( TClonesArray* jets ) {
   return selJets; 
 }
 
+int nBJet( TClonesArray* branchParticle, std::vector<QJET> jets) {
+  int nbjet=0;
+  for( unsigned int i=0 ; i< jets.size() ; ++i) {
+    Jet* jet = jets[i].second;
+    if ( jet->Constituents.At(0)->IsA() == GenParticle::Class()) { 
+      int parton_idx = DecayChannel::FindJetParton( branchParticle, jet);
+      int parton =0 ; 
+      if ( parton_idx != -1 ) parton = ((GenParticle*)branchParticle->At(parton_idx))->PID;
+      std::cout<<"Sel Jet's parton : "<<parton<<std::endl;
+      if ( abs(parton)==5) {
+        /*
+        TRandom3* ran = new TRandom3();
+        float pt = jet->PT;
+        float  eff = 0.85*tanh(0.0025*pt)*(25.0/(1+0.063*pt));
+        if ( ran->Rndm()< eff  ) nbjet++;
+        */
+        nbjet++;
+      }
+    } 
+    else if ( jet->BTag >0 ) nbjet++;
+  }
+  return nbjet;
+}
+
+
 //------------------------------------------------------------------------------
 void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
 {
@@ -239,10 +264,13 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
     nevt->Fill(6);
     ofc.GetTH1("nJet")->Fill( selJet.size() );
 
+    if ( nBJet(branchParticle, selJet) <1) continue;
+    nevt->Fill(7);
 
     ofc.data.reset();
     // Calculate Weight!
     cat::CMSKinSolver* cmskin_solver = new cat::CMSKinSolver();
+    //cat::DESYSmearedSolver* cmskin_solver = new cat::DESYSmearedSolver();
     for( unsigned int i = 0 ; i < selJet.size() ; ++i) {
       for( unsigned int j = 0 ; j < selJet.size() ; ++j) { 
         if (i==j) continue;
@@ -258,22 +286,24 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
         ofc.data.jet_phi[0] = jet1.phi();
         ofc.data.bjet_charge[0] = selJet[i].first;
        
-        int jet1_parton_idx = dc.FindJetParton( branchParticle, selJet[i].second);
+        int jet1_parton_idx = DecayChannel::FindJetParton( branchParticle, selJet[i].second);
         if ( jet1_parton_idx != -1 ) ofc.data.bjet_partonPdgId[0] = ((GenParticle*)branchParticle->At(jet1_parton_idx))->PID; 
         else ofc.data.bjet_partonPdgId[0] = 0;
 
         ofc.data.lep_charge[0] = selLepton[0].first;
         ofc.data.bjet_btag[0] = selJet[i].second->BTag;
-
+        if ( selJet[i].second->Constituents.At(0)->IsA() == GenParticle::Class() && abs(ofc.data.bjet_partonPdgId[0])==5 ) ofc.data.bjet_btag[0] = 1;  
+        
         ofc.data.jet_pt[1] = jet2.pt();
         ofc.data.jet_eta[1] = jet2.eta();
         ofc.data.jet_phi[1] = jet2.phi();
         ofc.data.bjet_charge[1] = selJet[j].first;
-        int jet2_parton_idx = dc.FindJetParton( branchParticle, selJet[j].second);
+        int jet2_parton_idx = DecayChannel::FindJetParton( branchParticle, selJet[j].second);
         if ( jet2_parton_idx != -1 ) ofc.data.bjet_partonPdgId[1] = ((GenParticle*)branchParticle->At(jet2_parton_idx))->PID; 
         else ofc.data.bjet_partonPdgId[1] = 0;
         ofc.data.lep_charge[1] = selLepton[1].first;
         ofc.data.bjet_btag[1] = selJet[i].second->BTag;
+        if ( selJet[j].second->Constituents.At(0)->IsA() == GenParticle::Class() && abs(ofc.data.bjet_partonPdgId[1])==5 ) ofc.data.bjet_btag[1] = 1;  
 
 
         // for jet2,
@@ -310,7 +340,7 @@ void BookingTree(OutFileClass& ofc, std::string treeName, const char* treeTypes)
 void BookingHist(OutFileClass& ofc)
 {
   ofc.GetFile()->cd();
-  TH1F* h1 = new TH1F("nEvent","Number of Events",6,1,7);
+  TH1F* h1 = new TH1F("nEvent","Number of Events",7,1,8);
   auto xaxis = h1->GetXaxis();
   xaxis->SetBinLabel(1,"Total");
   xaxis->SetBinLabel(2,"GenEvt");
@@ -318,6 +348,7 @@ void BookingHist(OutFileClass& ofc)
   xaxis->SetBinLabel(4,"ZVeto");
   xaxis->SetBinLabel(5,"nJet2");
   xaxis->SetBinLabel(6,"MET40");
+  xaxis->SetBinLabel(7,"nbJet1");
   ofc.AddTH1(h1);
 
   TH1F* h2 = new TH1F("nJet","Number of Jets",10,0,10);

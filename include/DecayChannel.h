@@ -12,8 +12,8 @@ class DecayChannel {
     TClonesArray* genParticles_;
   public :
     DecayChannel( TClonesArray* genParticles);
-    int FindJetParton(TClonesArray*,Jet*);
-    int FindJetParton(TClonesArray*,int);
+    static int FindJetParton(TClonesArray*,Jet*);
+    static int FindJetParton(TClonesArray*,int);
     int FindWboson(TClonesArray* , int baseIdx );
     int FindLepton(TClonesArray* , int baseIdx );
     int channelSelection(TClonesArray*  ); 

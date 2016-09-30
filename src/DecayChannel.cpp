@@ -23,7 +23,6 @@ int DecayChannel::FindJetParton(TClonesArray* genParticles, int baseIdx) {
   if ( baseIdx <0 ) return -1;
   GenParticle* base = (GenParticle*)genParticles->At(baseIdx);
   int absPID = abs(base->PID);
-  std::cout<<"abs PID : "<<absPID<<std::endl;
   if ( absPID < 6 ) return baseIdx;
 
   // First, M1
@@ -43,7 +42,6 @@ int DecayChannel::FindJetParton(TClonesArray* genParticles, Jet* jet) {
     if ( object ==0 ) continue;
     if ( object->IsA() == GenParticle::Class()) {
       particle = (GenParticle*)object;
-      return value;
     }
     else if ( object->IsA() == Track::Class()) {
       Track* track = (Track*) object;
