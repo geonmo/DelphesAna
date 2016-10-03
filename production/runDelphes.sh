@@ -10,24 +10,35 @@ chmod +x delphesCode/DelphesCMSFWLite
 cp delphesCode/MinBias.pileup .
 
 echo "========= Acquire input filename ========="
+
+if [ -e PSet.py ] 
+then
+pythonFile="PSet"
 #inputfile=`python -c "import PSet; print PSet.process.source.fileNames[0]"`
-inputfile=`python -c "import pset_delphes; print pset_delphes.process.source.fileNames[0]"`
+else
+pythonFile="pset_delphes"
+fi
+inputfile=`python -c "import ${pythonFile}; print ${pythonFile}.process.source.fileNames[0]"`
+
 echo $inputfile
 
 pfnInput=`edmFileUtil -d $inputfile`
 echo $pfnInput
 delphesCode/DelphesCMSFWLite delphes_card_CMSPU_mod_noTauTagging.tcl Delphes.root $pfnInput
-
-if [ $? != 0 ] 
-then
 exitCode=$?
-exitMessage="My arbitrary exit message"
-errorType="My arbitrary error type"
+echo "Program is running. (${exitCode})"
+cmsRun -j FrameworkJobReport.xml -p ${pythonFile}.py
+
+if [ ${exitCode} != 0 ] 
+then
+echo "Program is failed. (${exitCode})"
+exitMessage="Delphes critical failed."
+errorType="Fatal Exception"
   if [ -e FrameworkJobReport.xml ]
   then
 cat << EOF > FrameworkJobReport.xml.tmp
 <FrameworkJobReport>
-<FrameworkError ExitStatus="$exitCode" Type="$errorType" >
+<FrameworkError ExitStatus="8020" Type="$errorType" >
 $exitMessage
 </FrameworkError>
 EOF
@@ -47,5 +58,3 @@ echo "Successfully prod."
 fi
 
 
-#cmsRun -j FrameworkJobReport.xml -p PSet.py
-cmsRun -j FrameworkJobReport.xml -p pset_delphes.py

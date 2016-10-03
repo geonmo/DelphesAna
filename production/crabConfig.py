@@ -31,7 +31,7 @@ config.Data.inputDBS = 'global'
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1
 #config.Data.totalUnits = 10000
-config.Data.outLFNDirBase = '/store/user/%s/DelphesAna_201610/' % (getUsernameFromSiteDB())
+config.Data.outLFNDirBase = '/store/user/%s/DelphesAna_20161003/' % (getUsernameFromSiteDB())
 config.Data.publication = False
 
 
