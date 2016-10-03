@@ -16,7 +16,7 @@ echo $inputfile
 
 pfnInput=`edmFileUtil -d $inputfile`
 echo $pfnInput
-delphesCode/DelphesCMSFWLite delphes_card_CMSPU_mod.tcl Delphes.root $pfnInput
+delphesCode/DelphesCMSFWLite delphes_card_CMSPU_mod_noTauTagging.tcl Delphes.root $pfnInput
 
 cmsRun -j FrameworkJobReport.xml -p PSet.py
 #cmsRun -j FrameworkJobReport.xml -p pset_delphes.py
