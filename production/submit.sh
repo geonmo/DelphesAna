@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-import os
+import os,sys
 
-datasetList = open("dataset_TTDY.txt").readlines()
+fileName = sys.argv[1]
+datasetList = open(fileName).readlines()
 print "File is opened."
 for dataset in datasetList :
 
