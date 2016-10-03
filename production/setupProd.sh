@@ -7,7 +7,7 @@ mv delphes-master delphesCode
 
 cd delphesCode
 ./configure
-cp FastJetFinder.cc delphesCode/modules/
+cp ../FastJetFinder.cc modules/
 make -j 20
 
 cd ..
