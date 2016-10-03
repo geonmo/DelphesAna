@@ -12,4 +12,4 @@ make -j 20
 
 cd ..
 rm delphesProd.tar.gz
-tar -czvf delphesProd.tar.gz delphesCode delphes_card_CMSPU_mod_noTauTagging.tcl
+tar -czvf delphesProd.tar.gz delphesCode delphes_card_CMS*.tcl

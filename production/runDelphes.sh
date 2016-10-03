@@ -24,7 +24,7 @@ echo $inputfile
 
 pfnInput=`edmFileUtil -d $inputfile`
 echo $pfnInput
-delphesCode/DelphesCMSFWLite delphes_card_CMSPU_mod_noTauTagging.tcl Delphes.root $pfnInput
+delphesCode/DelphesCMSFWLite delphes_card_CMSnoPU_noTauTagging.tcl Delphes.root $pfnInput
 exitCode=$?
 echo "Program is running. (${exitCode})"
 cmsRun -j FrameworkJobReport.xml -p ${pythonFile}.py
