@@ -183,7 +183,7 @@ int nBJet( TClonesArray* branchParticle, std::vector<QJET> jets) {
       int parton_idx = DecayChannel::FindJetParton( branchParticle, jet);
       int parton =0 ; 
       if ( parton_idx != -1 ) parton = ((GenParticle*)branchParticle->At(parton_idx))->PID;
-      std::cout<<"Sel Jet's parton : "<<parton<<std::endl;
+      //std::cout<<"Sel Jet's parton : "<<parton<<std::endl;
       if ( abs(parton)==5) {
         /*
         TRandom3* ran = new TRandom3();
@@ -269,8 +269,8 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
 
     ofc.data.reset();
     // Calculate Weight!
-    cat::CMSKinSolver* cmskin_solver = new cat::CMSKinSolver();
-    //cat::DESYSmearedSolver* cmskin_solver = new cat::DESYSmearedSolver();
+    //cat::CMSKinSolver* cmskin_solver = new cat::CMSKinSolver();
+    cat::DESYSmearedSolver* cmskin_solver = new cat::DESYSmearedSolver();
     for( unsigned int i = 0 ; i < selJet.size() ; ++i) {
       for( unsigned int j = 0 ; j < selJet.size() ; ++j) { 
         if (i==j) continue;
@@ -280,7 +280,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
         const LV POG[] = { common::TLVtoLV(met->P4()), selLepton[0].second, selLepton[1].second, jet1, jet2}; 
         cmskin_solver->solve(POG);
         double quality = cmskin_solver->quality(); 
-        //if (quality<0) continue; 
+        if (quality<0) continue; 
         ofc.data.jet_pt[0] = jet1.pt();
         ofc.data.jet_eta[0] = jet1.eta();
         ofc.data.jet_phi[0] = jet1.phi();
@@ -322,6 +322,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
 
 void Write(OutFileClass& ofc)
 {
+  ofc.GetFile()->cd();
   //result->Print("png");
   ofc.AllHistWrite();
   ofc.AllTreeWrite();

@@ -247,7 +247,7 @@ DESYSmearedSolver::DESYSmearedSolver():
   maxLBMass_(360),
   mTopInput_(172.5)
 {
-  rng_ = 0;
+  rng_ = new TRandom3();
 
   const char* filePath = "$CMSSW_BASE/src/DelphesAna/src/KoreaDesyKinRecoInput.root";
   TFile* f = TFile::Open(filePath);
@@ -379,11 +379,12 @@ void DESYSmearedSolver::solve(const LV input[])
   sol_.setVisible(l1, l2, j1, j2);
   const LV nu1(sumP[4][0], sumP[4][1], sumP[4][2], KinSolverUtils::computeEnergy(sumP[4], KinSolverUtils::mV));
   const LV nu2(sumP[5][0], sumP[5][1], sumP[5][2], KinSolverUtils::computeEnergy(sumP[5], KinSolverUtils::mV));
-  sol_.setSolution(sumW, nu1, nu2);
   sol_.t1_ = l1+j1+nu1;
   sol_.t2_ = l2+j2+nu2;
-  sol_.t1_.SetE(sqrt(sol_.t1_.P2() + mTopInput_*mTopInput_));
-  sol_.t2_.SetE(sqrt(sol_.t2_.P2() + mTopInput_*mTopInput_));
+  sol_.t1_.SetE(sqrt(sol_.t1_.P2() + sol_.t1_.mass()*sol_.t1_.mass()));
+  sol_.t2_.SetE(sqrt(sol_.t2_.P2() + sol_.t2_.mass()*sol_.t2_.mass()));
+  vector<double> values = {(sol_.t1_+sol_.t2_).mass(), sol_.t1_.mass(), sol_.t2_.mass()};
+  sol_.setSolution(sumW, nu1, nu2,values);
 
 }
 
@@ -404,7 +405,7 @@ LV DESYSmearedSolver::getSmearedLV(const LV& lv0,
   if ( p == 0 ) return LV(0, 0, 0, e);
 
   // Apply rotation
-  const double localPhi = 2*TMath::Pi()*rng_->flat();
+  const double localPhi = 2*TMath::Pi()*rng_->Rndm();
   const double px1 = -p*sin(dRot)*sin(localPhi);
   const double py1 =  p*sin(dRot)*cos(localPhi);
   const double pz1 =  p*cos(dRot);
@@ -435,7 +436,7 @@ double DESYSmearedSolver::getRandom(TH1* h)
 
   if (integral == 0) return 0;
 
-  const double r1 = rng_->flat();
+  const double r1 = rng_->Rndm();
   const int ibin = TMath::BinarySearch(n, fIntegral, r1);
   double x = h->GetBinLowEdge(ibin+1);
   const double binW = h->GetBinWidth(ibin+1);
