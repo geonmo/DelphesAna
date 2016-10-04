@@ -7,8 +7,9 @@ mv delphes-master delphesCode
 
 cd delphesCode
 ./configure
+cp ../FastJetFinder.* modules/
 make -j 20
 
 cd ..
 rm delphesProd.tar.gz
-tar -czvf delphesProd.tar.gz delphesCode delphes_card_CMSPU_mod.tcl 
+tar -czvf delphesProd.tar.gz delphesCode delphes_card_CMS*.tcl
