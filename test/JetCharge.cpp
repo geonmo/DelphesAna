@@ -26,19 +26,15 @@ double getWeightfromCMSKIN(MissingET met,Lepton l1, Lepton l2, Jet j1, Jet j2)
 } 
 */
 
-int getNumJetTracks(Jet* jet) {
-  int genParticleIdx=0;
-  int trackIdx=0;
-  int towerIdx=0;
-  int candidateIdx=0;
-  int unknownIdx =0;
+int printJetConstituents(Jet* jet) {
+  int genParticleIdx, trackIdx, towerIdx, candidateIdx, unknownIdx=0;
   std::cout<<"Jet nConstituents : "<< jet->Constituents.GetEntriesFast()<<std::endl;
+  std::cout<<"track PID : ";
   for(int j = 0; j < jet->Constituents.GetEntriesFast(); ++j)
   {
     TObject* object = jet->Constituents.At(j);
     // Check if the constituent is accessible
     if(object == 0) continue;
-
     if ( object->IsA() == GenParticle::Class()) {
       GenParticle* particle = (GenParticle*) object;
       if ( particle->PT < 1 ) continue;
@@ -50,6 +46,7 @@ int getNumJetTracks(Jet* jet) {
       Track* track = (Track*) object;
       if ( track->PT < 1 ) continue;
       trackIdx++;
+      std::cout<< track->PID<<", ";
     }
     else if(object->IsA() == Tower::Class()) { 
       D(std::cout<<"Tower"<<std::endl;) 
@@ -64,12 +61,25 @@ int getNumJetTracks(Jet* jet) {
       unknownIdx++;
     }
   }
-  std::cout<<"GenParticle : "<<genParticleIdx<<"  Track : "<<trackIdx<<"  Tower : "<<towerIdx<<"  Candidate : "<<candidateIdx<<"  unknown : "<<unknownIdx<<std::endl;
+  std::cout<<std::endl;
   return trackIdx;
 }
 
+void printJetParticles(Jet* jet) {
+  std::cout<<"Jet nParticles : "<<jet->Particles.GetEntriesFast()<<std::endl;
+  std::cout<<"Particle PID : "; 
+  for(int i=0 ; i< jet->Particles.GetEntriesFast(); ++i) {
+    GenParticle* cand = dynamic_cast<GenParticle*>(jet->Particles.At(i));
+    if ( cand ==nullptr)  continue;
+    if ( cand->PT < 1 ) continue;
+    std::cout<< cand->PID<<"("<<cand->Status<<") , ";
+  }
+  std::cout<<std::endl;
 
 
+  return ;
+}
+/*
 double getJetCharge(Jet* jet,bool weight) {
   double charge =0.;
   double weightSum =0.0;
@@ -118,7 +128,7 @@ double getJetCharge(Jet* jet,bool weight) {
   }
   return charge/weightSum;
 }
-
+*/
 struct TestPlots
 {
  
@@ -133,7 +143,6 @@ struct TestPlots
   TH1 *fJpsiPhi;
   */
   TH1 *fJetCharge;
-  TH1 *fJetChargeW;
   TH1 *fnJetTracks;
 };
 
@@ -175,10 +184,6 @@ void BookHistograms(ExRootResult *result, TestPlots *plots)
   plots->fJetCharge = result->AddHist1D(
     "jetCharge", "charge",
     "Jet Charge", "Jet Charge",
-    10, -5.0, 5.0 );
-  plots->fJetChargeW = result->AddHist1D(
-    "jetChargeWeighted", "charge",
-    "Jet Charge", "Weighted Jet charge",
     10, -5.0, 5.0 );
   plots->fnJetTracks = result->AddHist1D(
     "nJetTracks", "Track distribution",
@@ -244,15 +249,16 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
     {
       Jet* jet = (Jet*) branchJet->At(i);
       if ( jet->PT < 30 || abs(jet->Eta)>2.4 ) continue;
-      double jetCharge = getJetCharge( jet, false) ;
-      double jetChargeWeighted = getJetCharge( jet,true);
-      int nJetTracks = getNumJetTracks(jet);
+      double jetCharge = jet->Charge;
+      int nJetTracks = jet->NCharged;
       D(std::cout<<"Jet Charge : "<<jetCharge<<std::endl;)
       plots->fJetCharge->Fill( jetCharge ) ;
-      plots->fJetChargeW->Fill( jetChargeWeighted ) ;
       D(std::cout<<"njetTrack : "<<nJetTracks<<std::endl; )
       plots->fnJetTracks->Fill( nJetTracks ) ;
-      
+      //if ( jet->Flavor !=5 ) continue;
+      //std::cout<<"This is bjet!"<<std::end;
+      printJetConstituents(jet); 
+      printJetParticles(jet);    
     }
   }
 }

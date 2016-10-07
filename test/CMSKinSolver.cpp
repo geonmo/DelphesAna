@@ -30,6 +30,7 @@ public :
   int bjet_partonPdgId[2]; 
   int lep_charge[2];
   int bjet_btag[2];
+  int bjet_nCharged[2];
   JetTree() {
     init();
   }
@@ -44,6 +45,7 @@ public :
       bjet_partonPdgId[i] = 0 ;
       bjet_btag[i]= 0;
       bjet_charge[i]=-9;
+      bjet_nCharged[i]=0;
     }
   }
 };
@@ -169,7 +171,7 @@ std::vector<QJET> selectedJet( TClonesArray* jets ) {
   for(int i = 0; i < jets->GetEntriesFast(); ++i)
   {
     Jet* jet = (Jet*) jets->At(i);
-    if ( jet->PT < 20 || abs(jet->Eta)>2.5 ) continue;
+    if ( jet->PT < 30 || abs(jet->Eta)>2.5 ) continue;
     selJets.push_back( make_pair(jet->Charge, jet) );
   }
   return selJets; 
@@ -222,7 +224,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
   TClonesArray *branchMET = treeReader->UseBranch("MissingET");
   
   
-  TClonesArray *branchJet = treeReader->UseBranch("GenJet");
+  TClonesArray *branchJet = treeReader->UseBranch("Jet");
 
   Long64_t allEntries = treeReader->GetEntries();
 
@@ -285,6 +287,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
         ofc.data.jet_eta[0] = jet1.eta();
         ofc.data.jet_phi[0] = jet1.phi();
         ofc.data.bjet_charge[0] = selJet[i].first;
+        ofc.data.bjet_nCharged[0] = selJet[i].second->NCharged;
        
         int jet1_parton_idx = DecayChannel::FindJetParton( branchParticle, selJet[i].second);
         if ( jet1_parton_idx != -1 ) ofc.data.bjet_partonPdgId[0] = ((GenParticle*)branchParticle->At(jet1_parton_idx))->PID; 
@@ -298,6 +301,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
         ofc.data.jet_eta[1] = jet2.eta();
         ofc.data.jet_phi[1] = jet2.phi();
         ofc.data.bjet_charge[1] = selJet[j].first;
+        ofc.data.bjet_nCharged[1] = selJet[j].second->NCharged;
         int jet2_parton_idx = DecayChannel::FindJetParton( branchParticle, selJet[j].second);
         if ( jet2_parton_idx != -1 ) ofc.data.bjet_partonPdgId[1] = ((GenParticle*)branchParticle->At(jet2_parton_idx))->PID; 
         else ofc.data.bjet_partonPdgId[1] = 0;
@@ -373,7 +377,7 @@ int main(int argc, char* argv[])
   TFile* file = TFile::Open(outputFile,"RECREATE"); 
   auto ofc = OutFileClass(file);
   BookingHist(ofc);
-  BookingTree(ofc,"JetTree", "quality/F:jet_pt[2]/F:jet_eta[2]/F:jet_phi[2]/F:bjet_charge[2]/I:bjet_partonPdgId[2]/I:lep_charge[2]/I:bjet_btag[2]/I");
+  BookingTree(ofc,"JetTree", "quality/F:jet_pt[2]/F:jet_eta[2]/F:jet_phi[2]/F:bjet_charge[2]/I:bjet_partonPdgId[2]/I:lep_charge[2]/I:bjet_btag[2]/I:bjet_nCharged[2]/I");
   AnalyseEvents(treeReader,ofc);
 
   Write(ofc);
