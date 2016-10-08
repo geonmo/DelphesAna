@@ -20,10 +20,18 @@ chmod +x delphesCode/DelphesCMSFWLite
 cp delphesCode/MinBias.pileup .
 
 
+
+DELPHES_CARD="delphes_card_CMSnoPU_noTauTagging.tcl"
+
 pfnInput=`edmFileUtil -d $inputfile`
 echo $pfnInput
-delphesCode/DelphesCMSFWLite delphes_card_CMSnoPU_noTauTagging.tcl Delphes.root $pfnInput
+delphesCode/DelphesCMSFWLite ${DELPHES_CARD} Delphes.root $pfnInput
 jobFin=$?
+if [ ${jobFin} -ne 0]; then
+  rm Delphes.root
+  delphesCode/DelphesCMSFWLite ${DELPHES_CARD} Delphes.root root://cmsxrootd.fnal.gov/${inputfile}
+  jobFin=$?
+fi
 
 cmsRun -j FrameworkJobReport.xml -p ${PYCFG}.py
 if [ "$jobFin" -ne 0 ]
