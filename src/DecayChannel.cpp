@@ -110,6 +110,12 @@ int DecayChannel::channelSelection( TClonesArray* genParticles  ) {
     if ( top_idx !=-1 && antitop_idx != -1 ) break;
   }
 
+  if ( top_idx == -1 || anitop_idx == -1 ) {
+    D( std::cout<<"Can not find top quark for this events. \nPlease, check your data which include the partons(status ==3 or 13 for pythia6,8)"<<std::endl;)
+    D( std::cout<<"Skip decay channel selection."<<std::endl;)
+    return 
+  }
+
   int WbosonIdx1 = FindWboson( genParticles,     top_idx);
   int WbosonIdx2 = FindWboson( genParticles, antitop_idx);
 
