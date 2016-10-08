@@ -435,7 +435,7 @@ void FastJetFinder::Process()
     candidate->DeltaPhi = dphiMax;
 
     if (charge_den >0.0 ) {
-      charge = (int)(  (abs(charge_num)/abs(charge_den)+0.5)*100 );
+      charge = (int)(  (abs(charge_num)/abs(charge_den))*100 );
       if ( charge_num <0 ) charge = -charge;
     }
     else charge = 0;
