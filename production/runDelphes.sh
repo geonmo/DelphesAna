@@ -27,7 +27,7 @@ pfnInput=`edmFileUtil -d $inputfile`
 echo $pfnInput
 delphesCode/DelphesCMSFWLite ${DELPHES_CARD} Delphes.root $pfnInput
 jobFin=$?
-if [ ${jobFin} -ne 0]; then
+if [ ${jobFin} -ne 0 ]; then
   rm Delphes.root
   delphesCode/DelphesCMSFWLite ${DELPHES_CARD} Delphes.root root://cmsxrootd.fnal.gov/${inputfile}
   jobFin=$?
