@@ -45,6 +45,8 @@ set ExecutionPath {
 
   BTagging
 
+  ConstituentFilter
+
   UniqueObjectFinder
 
   ScalarHT
@@ -611,6 +613,18 @@ module FastJetFinder FastJetFinder {
 
 
 }
+module ConstituentFilter ConstituentFilter {
+
+ #add JetInputArray InputArray
+ #add JetInputArray GenJetFinder/jets
+ add JetInputArray FastJetFinder/jets
+
+ #add ConstituentInputArray InputArray OutputArray
+ add ConstituentInputArray HCal/eflowTracks eflowTracks
+ add ConstituentInputArray ECal/eflowPhotons eflowPhotons
+ add ConstituentInputArray HCal/eflowNeutralHadrons eflowNeutralHadrons
+  
+}
 
 ##################
 # Jet Energy Scale
@@ -714,12 +728,12 @@ module TreeWriter TreeWriter {
 # add Branch InputArray BranchName BranchClass
   add Branch Delphes/allParticles Particle GenParticle
 
-  add Branch TrackMerger/tracks Track Track
-  add Branch Calorimeter/towers Tower Tower
+  #add Branch TrackMerger/tracks Track Track
+  #add Branch Calorimeter/towers Tower Tower
 
-  add Branch HCal/eflowTracks EFlowTrack Track
-  add Branch ECal/eflowPhotons EFlowPhoton Tower
-  add Branch HCal/eflowNeutralHadrons EFlowNeutralHadron Tower
+  #add Branch HCal/eflowTracks EFlowTrack Track
+  #add Branch ECal/eflowPhotons EFlowPhoton Tower
+  #add Branch HCal/eflowNeutralHadrons EFlowNeutralHadron Tower
 
   add Branch GenJetFinder/jets GenJet Jet
   add Branch GenMissingET/momentum GenMissingET MissingET
@@ -730,4 +744,8 @@ module TreeWriter TreeWriter {
   add Branch UniqueObjectFinder/muons Muon Muon
   add Branch MissingET/momentum MissingET MissingET
   add Branch ScalarHT/energy ScalarHT ScalarHT
+
+  add Branch ConstituentFilter/eflowTracks          JetSubTracks         Track
+  add Branch ConstituentFilter/eflowPhotons         JetSubPhotons        Tower
+  add Branch ConstituentFilter/eflowNeutralHadrons  JetSubNeutralHadrons Tower
 }
