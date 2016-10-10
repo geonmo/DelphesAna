@@ -57,8 +57,8 @@ def anaTree( tree ) :
 
   largeCharge = "&&((lep_charge[0]*bjet_charge[0]+lep_charge[1]*bjet_charge[1]) <0)"
   
-  diffCharge = "&&( abs(bjet_charge[0]-bjet_charge[1])>=20)" 
-  sameCharge = "&&( abs(bjet_charge[0]-bjet_charge[1])==0)" 
+  diffCharge = "&&( abs(bjet_charge[0]-bjet_charge[1])>=10)" 
+  sameCharge = "&&( abs(bjet_charge[0]-bjet_charge[1])<10)" 
 
   btagged = "&&(bjet_btag[0]&&bjet_btag[1])"
   btagged_jet1 ="&&(bjet_btag[0])" 
@@ -114,21 +114,22 @@ def anaTree( tree ) :
   h3_6 = getTH1("Efficiency_AND_btagged_with_diffCharge", qualityBin,tree,"quality*1",pq_up+diffCharge+matched_and+btagged)
   h3_7 = getTH1("Efficiency_AND_btagged_with_sameCharge", qualityBin,tree,"quality*1",pq_up+sameCharge+matched_and+btagged)
 
-  h4   = getTH1("j1_pdgId_lq", lqBin , tree, "bjet_partonPdgId[0]*lep_charge[0]" ,pq_up)
+  h4   = getTH1("j1_pdgId_lq ; pdgId * LeptonCharge ; Entries", lqBin , tree, "bjet_partonPdgId[0]*lep_charge[0]" ,pq_up)
   h4_1 = getTH1("j1_pdgId_lq_only_largeCharge",lqBin ,tree, "bjet_partonPdgId[0]*lep_charge[0]" ,pq_up + largeCharge)
   h4_2 = getTH1("j1_pdgId_lq_only_diffCharge", lqBin ,tree, "bjet_partonPdgId[0]*lep_charge[0]" ,pq_up + diffCharge)
 
-  h5   = getTH1("j2_pdgId_lq", lqBin,tree, "bjet_partonPdgId[1]*lep_charge[1]" ,pq_up)
+  h5   = getTH1("j2_pdgId_lq ; pdgId * LeptonCharge ; Entries", lqBin,tree, "bjet_partonPdgId[1]*lep_charge[1]" ,pq_up)
   h5_1 = getTH1("j2_pdgId_lq_only_largeCharge", lqBin,tree, "bjet_partonPdgId[1]*lep_charge[1]" ,pq_up + largeCharge)
   h5_2 = getTH1("j2_pdgId_lq_only_diffCharge", lqBin,tree, "bjet_partonPdgId[1]*lep_charge[1]" ,pq_up + diffCharge)
 
-  h6   = getTH1("j1_pdgId_lq_btagged", lqBin,tree, "bjet_partonPdgId[0]*lep_charge[0]" ,pq_up+btagged_jet1)
+  h6   = getTH1("j1_pdgId_lq_btagged ; pdgId * LeptonCharge ; Entries", lqBin,tree, "bjet_partonPdgId[0]*lep_charge[0]" ,pq_up+btagged_jet1)
   h6_1 = getTH1("j1_pdgId_lq_btagged_only_large_charge", lqBin,tree, "bjet_partonPdgId[0]*lep_charge[0]" ,pq_up + largeCharge+btagged_jet1)
   h6_2 = getTH1("j1_pdgId_lq_btagged_only_diffcharge", lqBin,tree, "bjet_partonPdgId[0]*lep_charge[0]" ,pq_up + diffCharge+btagged_jet1)
 
-  h7   = getTH1("j2_pdgId_lq_btagged", lqBin,tree, "bjet_partonPdgId[1]*lep_charge[1]" ,pq_up+btagged_jet2)
+  h7   = getTH1("j2_pdgId_lq_btagged ; pdgId * LeptonCharge ; Entries", lqBin,tree, "bjet_partonPdgId[1]*lep_charge[1]" ,pq_up+btagged_jet2)
   h7_1 = getTH1("j2_pdgId_lq_btagged_only_largeCharge", lqBin,tree, "bjet_partonPdgId[1]*lep_charge[1]" ,pq_up + largeCharge+btagged_jet2)
   h7_2 = getTH1("j2_pdgId_lq_btagged_only_diffCharge", lqBin,tree, "bjet_partonPdgId[1]*lep_charge[1]" ,pq_up + diffCharge+btagged_jet2)
+
 
   h8   = getTH1("diffCharge",chargeBin,tree,"(bjet_charge[0]-bjet_charge[1])",pq_up)
   h8_1 = getTH1("diffCharge_matched",chargeBin,tree,"(bjet_charge[0]-bjet_charge[1])",pq_up+matched_and)
@@ -150,6 +151,14 @@ def anaTree( tree ) :
   h12_3   = getTH1("nTracks_from_bbar1",[30,0,30],tree,"bjet_nCharged[0]",pq_up+"&&(bjet_partonPdgId[0]==-5)")
   h12_4   = getTH1("nTracks_from_bbar2",[30,0,30],tree,"bjet_nCharged[1]",pq_up+"&&(bjet_partonPdgId[1]==-5)")
   h12_5 = h12_1+h12_2+h12_3+h12_4
+
+  h13   = getTH1("j1_pdgId_lq_bquark ; pdgId * LeptonCharge ; Entries", lqBin,tree, "bjet_partonPdgId[0]*lep_charge[0]" ,pq_up+matched_jet1)
+  h13_1 = getTH1("j1_pdgId_lq_bquark_only_large_charge", lqBin,tree, "bjet_partonPdgId[0]*lep_charge[0]" ,pq_up + largeCharge+matched_jet1)
+  h13_2 = getTH1("j1_pdgId_lq_bquark_only_diffcharge", lqBin,tree, "bjet_partonPdgId[0]*lep_charge[0]" ,pq_up + diffCharge+matched_jet1)
+
+  h14   = getTH1("j2_pdgId_lq_bquark ; pdgId * LeptonCharge ; Entries", lqBin,tree, "bjet_partonPdgId[1]*lep_charge[1]" ,pq_up+matched_jet2)
+  h14_1 = getTH1("j2_pdgId_lq_bquark_only_largeCharge", lqBin,tree, "bjet_partonPdgId[1]*lep_charge[1]" ,pq_up + largeCharge+matched_jet2)
+  h14_2 = getTH1("j2_pdgId_lq_bquark_only_diffCharge", lqBin,tree, "bjet_partonPdgId[1]*lep_charge[1]" ,pq_up + diffCharge+matched_jet2)
 
   c0 = makeCanvas("Jet_Charge_of_all_jets")
   set3HistsColor(h0,h0_1,h0_2)
@@ -213,7 +222,7 @@ def anaTree( tree ) :
   h3.Draw("same" )
   h3_1.Draw("same") 
   h3_3.Draw("same") 
-  c4.BuildLegend(0.3790727,0.2926829,0.7587719,0.5034843)
+  c4.BuildLegend(0.3790727,0.6289199,0.7587719,0.8397213)
   c4.SaveAs("eff_dist_and_all.png")
   c4.SaveAs("plotCode/eff_dist_and_all.C")
 
@@ -274,9 +283,12 @@ def anaTree( tree ) :
   h6_1.Draw("same") 
   h6_2.Draw("same") 
 
-  c7.BuildLegend()
+  c7.BuildLegend(0.3934837,0.4703833,0.773183,0.6811847)
   c7.SaveAs("bjet1_leptonCharge_btagged.png")
   c7.SaveAs("plotCode/bjet1_leptonCharge_btagged.C")
+
+
+
 
   c8 = makeCanvas("leptonCharge_for_bjet2")
   set3HistsColor( h7,h7_1,h7_2)
@@ -288,9 +300,37 @@ def anaTree( tree ) :
   h7.Draw() 
   h7_1.Draw("same") 
   h7_2.Draw("same") 
-  c8.BuildLegend()
+  c8.BuildLegend(0.3934837,0.4703833,0.773183,0.6811847)
   c8.SaveAs("bjet2_leptonCharge_btagged.png")
   c8.SaveAs("plotCode/bjet2_leptonCharge_btagged.C")
+
+  c7_1 = makeCanvas("leptonCharge_for_bquark1")
+  set3HistsColor( h13, h13_1, h13_2)
+  h13.Scale(1./h13.GetEntries())
+  h13_1.Scale(1./h13_1.GetEntries())
+  h13_2.Scale(1./h13_2.GetEntries())
+  h13.SetMaximum(1)
+  h13.Draw() 
+  h13_1.Draw("same") 
+  h13_2.Draw("same") 
+
+  c7_1.BuildLegend(0.3934837,0.4703833,0.773183,0.6811847)
+  c7_1.SaveAs("bjet1_leptonCharge_bquark.png")
+  c7_1.SaveAs("plotCode/bjet1_leptonCharge_bquark.C")
+
+  c8_1 = makeCanvas("leptonCharge_for_bquark2")
+  set3HistsColor( h14, h14_1, h14_2)
+  h14.Scale(1./h14.GetEntries())
+  h14_1.Scale(1./h14_1.GetEntries())
+  h14_2.Scale(1./h14_2.GetEntries())
+  h14.SetMaximum(1)
+  h14.Draw() 
+  h14_1.Draw("same") 
+  h14_2.Draw("same") 
+
+  c8_1.BuildLegend(0.3934837,0.4703833,0.773183,0.6811847)
+  c8_1.SaveAs("bjet2_leptonCharge_bquark.png")
+  c8_1.SaveAs("plotCode/bjet2_leptonCharge_bquark.C")
 
   c9_0 = makeCanvas("diffCharge")
   h8_1.SetLineColor(ROOT.kRed)
