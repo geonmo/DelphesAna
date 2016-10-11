@@ -19,6 +19,7 @@ lqmin=-5
 lqmax=6
 nlqbin=11
 
+
 def set3HistsColor( hist, hist2, hist3 ) :
   hist.SetMarkerColor(ROOT.kRed)
   hist.SetLineColor(ROOT.kRed)
@@ -77,19 +78,15 @@ def anaTree( tree, tree2,nEvent ) :
  
   
   outFile= TFile("histOut.root","RECREATE")
-  h1   = getTH1("top_mass ; M_{top}[GeV/c^2] ; Entries", [100,100,300],tree, "top_mass" ,pq_up)
-  h2   = getTH1("top_mass_btagged ; M_{top}[GeV/c^2] ; Entries", [100,100,300],tree, "top_mass" ,pq_up+btagged_or)
-  h3   = getTH1("top_mass_charged ; M_{top}[GeV/c^2] ; Entries", [100,100,300],tree2, "top_mass" ,pq_up)
-  h4   = getTH1("top_mass_btagged_charged ; M_{top}[GeV/c^2] ; Entries", [100,100,300],tree2, "top_mass" ,pq_up+btagged_or)
+  massBin = [1000,150,200]
+  h1   = getTH1("top_mass ; M_{top}[GeV/c^2] ; Entries", massBin ,tree, "top_mass" ,pq_up)
+  h2   = getTH1("top_mass_btagged ; M_{top}[GeV/c^2] ; Entries", massBin,tree, "top_mass" ,pq_up+btagged_or)
+  h3   = getTH1("top_mass_charged ; M_{top}[GeV/c^2] ; Entries", massBin,tree2, "top_mass" ,pq_up)
+  h4   = getTH1("top_mass_btagged_charged ; M_{top}[GeV/c^2] ; Entries", massBin,tree2, "top_mass" ,pq_up+btagged_or)
   h1.SetName(h1.GetTitle())
   h2.SetName(h2.GetTitle())
   h3.SetName(h3.GetTitle())
   h4.SetName(h4.GetTitle())
-
-  h1.Sumw2()
-  h2.Sumw2()
-  h3.Sumw2()
-  h4.Sumw2()
 
   h1.Scale(1./nEvent)
   h2.Scale(1./nEvent)
@@ -104,27 +101,54 @@ def anaTree( tree, tree2,nEvent ) :
   outFile.Write()
   outFile.Close()
 
-  fitmodel = "gaus"
+  gROOT.LoadMacro("BW.C")
+  fitBW = TF1("mybw",mybw,100,300,3)
+
+  fitBW.SetParameter(0,1.0)
+  fitBW.SetParName(0,"const")
+  fitBW.SetParName(1,"sigma")
+  fitBW.SetParameter(1,5.0)
+  fitBW.SetParName(2,"mean")
+  fitBW.SetParameter(2,172.5)
+
+  fitmodel = "mybw"
+  #fitmodel = "landau"
   c1 = makeCanvas("topMass")
   h1.Fit(fitmodel,"S")
   h1.SetLineColor(ROOT.kRed)
+  h1.SetMarkerColor(ROOT.kRed)
   h3.Fit(fitmodel,"S")
   h3.SetLineColor(ROOT.kBlue)
+  h3.SetMarkerColor(ROOT.kBlue)
   h1.Draw()
   h3.Draw("same")
-
+  c1.BuildLegend()
   c1.SaveAs("topMass.png")
   c1.SaveAs("plotCode/topMass.C")
 
   c2 = makeCanvas("topMass_btaggedOR")
-  h2.Fit("gaus","S")
+  h2.Fit(fitmodel,"S")
   h2.SetLineColor(ROOT.kRed)
+  h2.SetMarkerColor(ROOT.kRed)
   h4.Fit(fitmodel,"S")
   h4.SetLineColor(ROOT.kBlue)
+  h4.SetMarkerColor(ROOT.kBlue)
   h2.Draw()
-  h4.Draw()
+  h4.Draw("same")
   c2.SaveAs("topMass_btaggedOR.png")
   c2.SaveAs("plotCode/topMass_btaggedOR.C")
+
+  c3 = makeCanvas("topMass_Norm")
+  h1.Scale(1./h1.Integral())
+  h3.Scale(1./h3.Integral())
+  h1.Fit(fitmodel,"S")
+  h3.Fit(fitmodel,"S")
+  h1.Draw()
+  h3.Draw("same")
+  c1.BuildLegend()
+  c1.SaveAs("topMass_Norm.png")
+  c1.SaveAs("plotCode/topMass_Norm.C")
+
 
 
 if __name__ == "__main__" :

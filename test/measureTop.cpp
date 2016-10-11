@@ -151,7 +151,7 @@ double getJetCharge(Jet* jet,bool weight) {
       }
     }
   }
-  return charge/weightSum;
+  return charge/weightSum*100;
 }
 
 
@@ -178,7 +178,7 @@ std::vector<QJET> selectedJet( TClonesArray* jets ) {
   {
     Jet* jet = (Jet*) jets->At(i);
     if ( jet->PT < 30 || abs(jet->Eta)>2.5 ) continue;
-    selJets.push_back( make_pair(jet->Charge, jet) );
+    selJets.push_back( make_pair( getJetCharge(jet,true), jet) );
   }
   return selJets; 
 }
@@ -202,7 +202,7 @@ int nBJet( TClonesArray* branchParticle, std::vector<QJET> jets) {
 
 
 //------------------------------------------------------------------------------
-void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
+void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc, const char* jetType)
 {
   TClonesArray *branchParticle = treeReader->UseBranch("Particle");
   TClonesArray *branchElectron = treeReader->UseBranch("Electron");
@@ -223,7 +223,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
   TClonesArray *branchMET = treeReader->UseBranch("MissingET");
   
   
-  TClonesArray *branchJet = treeReader->UseBranch("Jet");
+  TClonesArray *branchJet = treeReader->UseBranch(jetType);
 
   Long64_t allEntries = treeReader->GetEntries();
 
@@ -233,16 +233,18 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
 
   //Int_t i, j, entry;
   int percent=0;
-  TH1* nevt = ofc.GetTH1("nEvent");
+  TH1* nevt = ofc.GetTH1((TString("nEvent_")+jetType).Data());
   for(int entry = 0; entry < allEntries; ++entry) {
     treeReader->ReadEntry(entry);
     // Loop over all jets in event
     if (entry % (allEntries/100)==0 ) std::cout<<"Event : "<<entry<<"("<<percent++<<"%)"<<std::endl;
     nevt->Fill(1);
 
+    /*
     // Event Selection using GenParticles.
     DecayChannel dc(branchParticle);
     if ( dc.channel() !=0 ) continue; // Only choose dilepton channel except tau decay.
+    */
     //std::cout<<"Pass GEN EventSelector cut"<<std::endl;
     nevt->Fill(2);
 
@@ -262,7 +264,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
     if ( met->MET<40 ) continue;
     //std::cout<<"Pass MET cut"<<std::endl;
     nevt->Fill(6);
-    ofc.GetTH1("nJet")->Fill( selJet.size() );
+    ofc.GetTH1((TString("nJet_")+jetType).Data())->Fill( selJet.size() );
 
     if ( nBJet(branchParticle, selJet) <1) continue;
     nevt->Fill(7);
@@ -359,12 +361,12 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
     if ( ofc.data.weight > 0 ) { 
       std::cout<<"Weight : "<<ofc.data.weight<<std::endl;
       std::cout<<"top1 mass : "<<ofc.data.top_mass[0]<<"  top2 mass : "<<ofc.data.top_mass[1]<<std::endl;
-      ofc.GetTree("JetTree")->Fill();
+      ofc.GetTree( (TString(jetType)+"Tree").Data() )->Fill();
     }
     if ( ofc.data1.weight >0 ) { 
       std::cout<<"Weight with Charged info : "<<ofc.data1.weight<<std::endl;
       std::cout<<"top1 mass : "<<ofc.data1.top_mass[0]<<"  top2 mass : "<<ofc.data1.top_mass[1]<<std::endl;
-      ofc.GetTree("JetTreeCharge")->Fill();
+      ofc.GetTree( (TString(jetType)+"TreeCharge").Data() )->Fill();
     }
   }
 }
@@ -392,7 +394,7 @@ void BookingTree(OutFileClass& ofc, std::string treeName, const char* treeTypes)
 void BookingHist(OutFileClass& ofc)
 {
   ofc.GetFile()->cd();
-  TH1F* h1 = new TH1F("nEvent","Number of Events",7,1,8);
+  TH1F* h1 = new TH1F("nEvent_Jet","Number of Events",7,1,8);
   auto xaxis = h1->GetXaxis();
   xaxis->SetBinLabel(1,"Total");
   xaxis->SetBinLabel(2,"GenEvt");
@@ -403,8 +405,22 @@ void BookingHist(OutFileClass& ofc)
   xaxis->SetBinLabel(7,"nbJet1");
   ofc.AddTH1(h1);
 
-  TH1F* h2 = new TH1F("nJet","Number of Jets",10,0,10);
+  TH1F* h2 = new TH1F("nJet_Jet","Number of Jets",10,0,10);
   ofc.AddTH1(h2);
+
+  TH1F* h3 = new TH1F("nEvent_GenJet","Number of Events",7,1,8);
+  xaxis = h3->GetXaxis();
+  xaxis->SetBinLabel(1,"Total");
+  xaxis->SetBinLabel(2,"GenEvt");
+  xaxis->SetBinLabel(3,"nlep2");
+  xaxis->SetBinLabel(4,"ZVeto");
+  xaxis->SetBinLabel(5,"nJet2");
+  xaxis->SetBinLabel(6,"MET40");
+  xaxis->SetBinLabel(7,"nbJet1");
+  ofc.AddTH1(h3);
+
+  TH1F* h4 = new TH1F("nJet_GenJet","Number of Jets",10,0,10);
+  ofc.AddTH1(h4);
 }
   
 
@@ -427,7 +443,10 @@ int main(int argc, char* argv[])
   TString treeBranch("quality/F:jet_pt[2]/F:jet_eta[2]/F:jet_phi[2]/F:top_mass[2]/F:ttbar_mass/F:bjet_charge[2]/I:bjet_partonPdgId[2]/I:lep_charge[2]/I:bjet_btag[2]/I:bjet_nCharged[2]/I");
   BookingTree(ofc,"JetTree",       treeBranch.Data());
   BookingTree(ofc,"JetTreeCharge", treeBranch.Data());
-  AnalyseEvents(treeReader,ofc);
+  BookingTree(ofc,"GenJetTree",       treeBranch.Data());
+  BookingTree(ofc,"GenJetTreeCharge", treeBranch.Data());
+  AnalyseEvents(treeReader,ofc, "Jet");
+  AnalyseEvents(treeReader,ofc, "GenJet");
 
   Write(ofc);
   cout << "** Exiting..." << endl;
