@@ -445,8 +445,8 @@ int main(int argc, char* argv[])
   BookingTree(ofc,"JetTreeCharge", treeBranch.Data());
   BookingTree(ofc,"GenJetTree",       treeBranch.Data());
   BookingTree(ofc,"GenJetTreeCharge", treeBranch.Data());
-  AnalyseEvents(treeReader,ofc, "Jet");
   AnalyseEvents(treeReader,ofc, "GenJet");
+  AnalyseEvents(treeReader,ofc, "Jet");
 
   Write(ofc);
   cout << "** Exiting..." << endl;
