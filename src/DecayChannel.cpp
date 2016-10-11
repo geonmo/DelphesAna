@@ -36,27 +36,33 @@ int DecayChannel::FindJetParton(TClonesArray* genParticles, int baseIdx) {
 
 int DecayChannel::FindJetParton(TClonesArray* genParticles, Jet* jet) {
   int value = -1;
-  GenParticle* particle ;
+  std::vector<GenParticle*> particles ;
+  std::vector<Track*> tracks ;
   for ( unsigned int i=0 ; i< jet->Constituents.GetEntriesFast() ; i++ ) {
     TObject* object = jet->Constituents.At(i) ; 
     if ( object ==0 ) continue;
     if ( object->IsA() == GenParticle::Class()) {
-      particle = (GenParticle*)object;
+      GenParticle* particle = (GenParticle*)object;
+      if ( particle->Charge==0 ) continue;
+      particles.push_back(particle);
     }
     else if ( object->IsA() == Track::Class()) {
       Track* track = (Track*) object;
-      particle = (GenParticle*)track->Particle.GetObject();
+      tracks.push_back(track);
     }
-    /*
-    else if ( object->IsA() == Tower::Class()) {
-      Tower* tower = (Tower*) object;
-      particle = (GenParticle*)tower->Particles.At(0);
-    }
-    */
-    else continue; 
-    value = FindJetParton(genParticles,  particle->M1);
-    return value;
   } 
+  GenParticle* particle ; 
+  if ( tracks.size() >0 ) { 
+    std::sort( tracks.begin(), tracks.end(), []( Track* a, Track* b) { return a->PT > b->PT; });
+    particle = (GenParticle*)tracks[0]->Particle.GetObject();
+    value = FindJetParton(genParticles,  particle->M1);
+  }
+  if ( particles.size()>0 ) {
+    std::sort( particles.begin(), particles.end(), []( GenParticle* a, GenParticle* b) { return a->PT > b->PT; });
+    particle = particles[0];
+    value = FindJetParton(genParticles,  particle->M1); 
+  }
+  return value;
 }
 
 

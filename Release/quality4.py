@@ -63,6 +63,7 @@ def anaTree( tree ) :
   btagged = "&&(bjet_btag[0]&&bjet_btag[1])"
   btagged_jet1 ="&&(bjet_btag[0])" 
   btagged_jet2 ="&&(bjet_btag[1])" 
+  btagged_or   ="&&(bjet_btag[0] || bjet_btag[1])"
 
   lepJet1Pair = "&&(lep_charge[0]*bjet_partonPdgId[0]==5)"
   lepJet2Pair = "&&(lep_charge[1]*bjet_partonPdgId[1]==5)"
@@ -159,6 +160,8 @@ def anaTree( tree ) :
   h14   = getTH1("j2_pdgId_lq_bquark ; pdgId * LeptonCharge ; Entries", lqBin,tree, "bjet_partonPdgId[1]*lep_charge[1]" ,pq_up+matched_jet2)
   h14_1 = getTH1("j2_pdgId_lq_bquark_only_largeCharge", lqBin,tree, "bjet_partonPdgId[1]*lep_charge[1]" ,pq_up + largeCharge+matched_jet2)
   h14_2 = getTH1("j2_pdgId_lq_bquark_only_diffCharge", lqBin,tree, "bjet_partonPdgId[1]*lep_charge[1]" ,pq_up + diffCharge+matched_jet2)
+
+  h15   = getTH1("top_mass ; M_{top}[GeV/c^2] ; Entries", [100,160,180],tree, "top_mass" ,pq_up+btagged_or)
 
   c0 = makeCanvas("Jet_Charge_of_all_jets")
   set3HistsColor(h0,h0_1,h0_2)
@@ -407,6 +410,7 @@ def anaTree( tree ) :
   c16.BuildLegend(0.2042607,0.1968641,0.5839599,0.4076655)
   c16.SaveAs("nTracks.png")
   c16.SaveAs("plotCode/nTracks.C")
+
 
 if __name__ == "__main__" :
   if len(sys.argv) != 2 :
