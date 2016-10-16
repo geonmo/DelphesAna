@@ -275,6 +275,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc, const char* 
     float before_weight = -1.0;
     float before_weight_charged = -1.0;
     cat::DESYSmearedSolver* cmskin_solver = new cat::DESYSmearedSolver();
+    //cat::CMSKinSolver* cmskin_solver = new cat::CMSKinSolver();
     for( unsigned int i = 0 ; i < selJet.size() ; ++i) {
       for( unsigned int j = 0 ; j < selJet.size() ; ++j) { 
         if (i==j) continue;
@@ -314,17 +315,17 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc, const char* 
           ofc.data.bjet_btag[1] = selJet[i].second->BTag;
 
           if ( selJet[i].second->Constituents.At(0)->IsA() == GenParticle::Class() && abs(ofc.data.bjet_partonPdgId[0])==5 ) { 
-            if ( ofc.random->Rndm() > 0.8 ) ofc.data.bjet_btag[0] = 1;  
+            ofc.data.bjet_btag[0] = 1;  
           }
           if ( selJet[j].second->Constituents.At(0)->IsA() == GenParticle::Class() && abs(ofc.data.bjet_partonPdgId[1])==5 ) { 
-            if ( ofc.random->Rndm() > 0.8 ) ofc.data.bjet_btag[1] = 1; 
+            ofc.data.bjet_btag[1] = 1; 
           } 
           ofc.data.top_mass[0]   = (float)cmskin_solver->t1().mass();
           ofc.data.top_mass[1]   = (float)cmskin_solver->t2().mass();
           ofc.data.ttbar_mass  = (float)(cmskin_solver->t1()+cmskin_solver->t2()).mass();
         }
 
-        if ( selLepton[0].first * selJet[i].first + selLepton[1].first* selJet[j].first <0 ) {
+        if ( (selLepton[0].first * selJet[i].first)<0 && selLepton[1].first* selJet[j].first <0 ) {
           if ( before_weight_charged > quality ) continue; 
           before_weight_charged = quality;
 
