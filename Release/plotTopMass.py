@@ -20,6 +20,7 @@ lqmax=6
 nlqbin=11
 
 
+
 def set3HistsColor( hist, hist2, hist3 ) :
   hist.SetMarkerColor(ROOT.kRed)
   hist.SetLineColor(ROOT.kRed)
@@ -70,6 +71,8 @@ def anaTree( tree, tree2, nEvent, input, outFile, jetType ) :
   lepJet2Pair = "&&(lep_charge[1]*bjet_partonPdgId[1]==5)"
   lepJetPairs = lepJet1Pair+lepJet2Pair
 
+  tags = { "": [tree,pq_up] ,"_btagged":[tree, pq_up+btagged],"_charged":[tree2, pq_up],"_btagged_charged":[tree2, pq_up+btagged] }
+
 
   qualityBin = [nxbin, xmin, xmax]
   chargeBin = [nqbin, qmin, qmax]
@@ -80,72 +83,51 @@ def anaTree( tree, tree2, nEvent, input, outFile, jetType ) :
   massBin = [1000,100,200]
   largerTop = "top_mass[0]>top_mass[1]?top_mass[0]:top_mass[1]"
   smallTop = "top_mass[0]<top_mass[1]?top_mass[0]:top_mass[1]"
-  h1   = getTH1("top1_mass_%s ; M_{top}[GeV/c^2] ; Entries"%(jetType), massBin ,tree, largerTop ,pq_up)
-  h2   = getTH1("top1_mass_btagged_%s ; M_{top}[GeV/c^2] ; Entries"%(jetType), massBin,tree, largerTop ,pq_up+btagged_or)
-  h3   = getTH1("top1_mass_charged_%s ; M_{top}[GeV/c^2] ; Entries"%(jetType), massBin,tree2, largerTop ,pq_up)
-  h4   = getTH1("top1_mass_btagged_charged_%s ; M_{top}[GeV/c^2] ; Entries"%(jetType), massBin,tree2, largerTop ,pq_up+btagged_or)
-  h5   = getTH1("top2_mass_%s ; M_{top}[GeV/c^2] ; Entries"%(jetType), massBin ,tree, smallTop ,pq_up)
-  h6   = getTH1("top2_mass_btagged_%s ; M_{top}[GeV/c^2] ; Entries"%(jetType), massBin,tree, smallTop ,pq_up+btagged_or)
-  h7   = getTH1("top2_mass_charged_%s ; M_{top}[GeV/c^2] ; Entries"%(jetType), massBin,tree2, smallTop ,pq_up)
-  h8   = getTH1("top2_mass_btagged_charged_%s ; M_{top}[GeV/c^2] ; Entries"%(jetType), massBin,tree2, smallTop ,pq_up+btagged_or)
 
-  h1.SetName(h1.GetTitle())
-  h2.SetName(h2.GetTitle())
-  h3.SetName(h3.GetTitle())
-  h4.SetName(h4.GetTitle())
-  h5.SetName(h5.GetTitle())
-  h6.SetName(h6.GetTitle())
-  h7.SetName(h7.GetTitle())
-  h8.SetName(h8.GetTitle())
+  hists =[]
+  hists_norm=[]
+  hists.append( getTH1("top1_mass_%s ; M_{top}[GeV/c^2] ; Entries"%(jetType), massBin ,tree, largerTop ,pq_up))
+  hists.append( getTH1("top1_mass_btagged_%s ; M_{top}[GeV/c^2] ; Entries"%(jetType), massBin,tree, largerTop ,pq_up+btagged))
+  hists.append( getTH1("top1_mass_charged_%s ; M_{top}[GeV/c^2] ; Entries"%(jetType), massBin,tree2, largerTop ,pq_up))
+  hists.append( getTH1("top1_mass_btagged_charged_%s ; M_{top}[GeV/c^2] ; Entries"%(jetType), massBin,tree2, largerTop ,pq_up+btagged))
 
-  h1.Write()
-  h2.Write()
-  h3.Write()
-  h4.Write()
-  h5.Write()
-  h6.Write()
-  h7.Write()
-  h8.Write()
+  hists.append( getTH1("top2_mass_%s ; M_{top}[GeV/c^2] ; Entries"%(jetType), massBin ,tree, smallTop ,pq_up))
+  hists.append( getTH1("top2_mass_btagged_%s ; M_{top}[GeV/c^2] ; Entries"%(jetType), massBin,tree, smallTop ,pq_up+btagged))
+  hists.append( getTH1("top2_mass_charged_%s ; M_{top}[GeV/c^2] ; Entries"%(jetType), massBin,tree2, smallTop ,pq_up))
+  hists.append( getTH1("top2_mass_btagged_charged_%s ; M_{top}[GeV/c^2] ; Entries"%(jetType), massBin,tree2, smallTop ,pq_up+btagged))
 
-  h1_norm = h1.Clone()
-  h2_norm = h2.Clone()
-  h3_norm = h3.Clone()
-  h4_norm = h4.Clone()
-  h5_norm = h1.Clone()
-  h6_norm = h2.Clone()
-  h7_norm = h3.Clone()
-  h8_norm = h4.Clone()
+  hists.append( getTH1("top_mass_%s ; M_{top}[GeV/c^2] ; Entries"%(jetType), massBin ,tree, "top_mass" ,pq_up))
+  hists.append( getTH1("top_mass_btagged_%s ; M_{top}[GeV/c^2] ; Entries"%(jetType), massBin,tree, "top_mass" ,pq_up+btagged))
+  hists.append( getTH1("top_mass_charged_%s ; M_{top}[GeV/c^2] ; Entries"%(jetType), massBin,tree2, "top_mass" ,pq_up))
+  hists.append( getTH1("top_mass_btagged_charged_%s ; M_{top}[GeV/c^2] ; Entries"%(jetType), massBin,tree2, "top_mass" ,pq_up+btagged))
 
-  h1_norm.Scale(1./nEvent)
-  h2_norm.Scale(1./nEvent)
-  h3_norm.Scale(1./nEvent)
-  h4_norm.Scale(1./nEvent)
-  h5_norm.Scale(1./nEvent)
-  h6_norm.Scale(1./nEvent)
-  h7_norm.Scale(1./nEvent)
-  h8_norm.Scale(1./nEvent)
-  
-  h1_norm.SetName(h1.GetTitle()+"_Norm")
-  h2_norm.SetName(h2.GetTitle()+"_Norm")
-  h3_norm.SetName(h3.GetTitle()+"_Norm")
-  h4_norm.SetName(h4.GetTitle()+"_Norm")
-  h5_norm.SetName(h5.GetTitle()+"_Norm")
-  h6_norm.SetName(h6.GetTitle()+"_Norm")
-  h7_norm.SetName(h7.GetTitle()+"_Norm")
-  h8_norm.SetName(h8.GetTitle()+"_Norm")
+  hists.append( getTH1("ttbar_mass_%s ; M_{top}[GeV/c^2] ; Entries"%(jetType), massBin ,tree, "ttbar_mass" ,pq_up))
+  hists.append( getTH1("ttbar_mass_btagged_%s ; M_{top}[GeV/c^2] ; Entries"%(jetType), massBin,tree, "ttbar_mass" ,pq_up+btagged))
+  hists.append( getTH1("ttbar_mass_charged_%s ; M_{top}[GeV/c^2] ; Entries"%(jetType), massBin,tree2, "ttbar_mass" ,pq_up))
+  hists.append( getTH1("ttbar_mass_btagged_charged_%s ; M_{top}[GeV/c^2] ; Entries"%(jetType), massBin,tree2, "ttbar_mass" ,pq_up+btagged))
 
-  h1_norm.Write()
-  h2_norm.Write()
-  h3_norm.Write()
-  h4_norm.Write()
-  h5_norm.Write()
-  h6_norm.Write()
-  h7_norm.Write()
-  h8_norm.Write()
+  for hist in hists :
+   hist.SetName(hist.GetTitle())
+   hist.Write()
+   hist_norm = hist.Clone()
+   hist_norm.Scale( 1./nEvent)
+   hist_norm.SetName( hist.GetTitle()+"_Norm")
+   hist_norm.Write() 
 
+
+  histsForCal=[]
+  for type in tags.keys() :
+    temp1_hist = getTH1("correct_Pair_Lep_and_Jet1%s_%s; pdgId of Jets ; Entries"%(type, jetType),[11,-5.5,5.5] ,tags[type][0], "lep_charge[0]*bjet_partonPdgId[0]",tags[type][1])
+    temp2_hist = getTH1("correct_Pair_Lep_and_Jet2%s_%s; pdgId of Jets ; Entries"%(type, jetType),[11,-5.5,5.5] ,tags[type][0], "lep_charge[1]*bjet_partonPdgId[1]",tags[type][1])
+    sumHist = temp1_hist + temp2_hist
+    sumHist.SetTitle("correct_Pair_Lep_and_Jet%s_%s"%(type, jetType)) 
+    sumHist.SetName(sumHist.GetTitle())
+    sumHist.Write()
+ 
+  """
   fitmodel = "gaus"
   #fitmodel = "landau"
-  c1 = makeCanvas("topMass")
+  c1 = makeCanvas("top1Mass_%s_%s"%(input,jetType))
   h1.Fit(fitmodel,"S")
   h1.SetLineColor(ROOT.kRed)
   h1.SetMarkerColor(ROOT.kRed)
@@ -158,7 +140,7 @@ def anaTree( tree, tree2, nEvent, input, outFile, jetType ) :
   c1.SaveAs("topMass1_%s_%s.png"%(input,jetType))
   c1.SaveAs("plotCode/topMass1_%s_%s.C"%(input,jetType))
 
-  c2 = makeCanvas("topMass_btaggedOR")
+  c2 = makeCanvas("top1Mass_btaggedOR_%s_%s"%(input,jetType))
   h2.Fit(fitmodel,"S")
   h2.SetLineColor(ROOT.kRed)
   h2.SetMarkerColor(ROOT.kRed)
@@ -171,7 +153,7 @@ def anaTree( tree, tree2, nEvent, input, outFile, jetType ) :
   c2.SaveAs("topMass1_btaggedOR_%s_%s.png"%(input,jetType))
   c2.SaveAs("plotCode/topMass1_btaggedOR_%s_%s.C"%(input,jetType))
 
-  c3 = makeCanvas("topMass")
+  c3 = makeCanvas("top2Mass_%s_%s"%(input,jetType))
   h5.Fit(fitmodel,"S")
   h5.SetLineColor(ROOT.kRed)
   h5.SetMarkerColor(ROOT.kRed)
@@ -181,10 +163,10 @@ def anaTree( tree, tree2, nEvent, input, outFile, jetType ) :
   h5.Draw()
   h7.Draw("same")
   c3.BuildLegend(0.2393484,0.5348432,0.6190476,0.7456446)
-  c3.SaveAs("topMass2_%s_%s.png"%(input,jetType))
-  c3.SaveAs("plotCode/topMass2_%s_%s.C"%(input,jetType))
+  c3.SaveAs("topMass2_%s_%s_Norm.png"%(input,jetType))
+  c3.SaveAs("plotCode/topMass2_%s_%s_Norm.C"%(input,jetType))
 
-  c4 = makeCanvas("topMass_btaggedOR")
+  c4 = makeCanvas("top2Mass_btaggedOR_%s_%s"%(input,jetType))
   h6.Fit(fitmodel,"S")
   h6.SetLineColor(ROOT.kRed)
   h6.SetMarkerColor(ROOT.kRed)
@@ -196,6 +178,7 @@ def anaTree( tree, tree2, nEvent, input, outFile, jetType ) :
   c4.BuildLegend(0.2393484,0.5348432,0.6190476,0.7456446)
   c4.SaveAs("topMass2_btaggedOR_%s_%s.png"%(input,jetType))
   c4.SaveAs("plotCode/topMass2_btaggedOR_%s_%s.C"%(input,jetType))
+  """
 
 if __name__ == "__main__" :
   if len(sys.argv) != 1 :
