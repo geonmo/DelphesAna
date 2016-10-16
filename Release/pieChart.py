@@ -13,30 +13,27 @@ def anaTree(inFile, num) :
   tags = [ "" ,"_btagged","_charged","_btagged_charged"]
   inFileName = [ "TTLL","DY50","DY10to50"]
   #for jetType in ["Jet","GenJet"] :
-  c1 = TCanvas("pieChart","pieChart",600,600)
+  c1 = TCanvas("pieChart","pieChart",800,800)
   c1.Divide(2,2)
   idx=0
   for jetType in ["Jet"] :
     for type in tags :
-      idx+=1
+      idx = idx+1
       c1.cd(idx)
       coHist = inFile.Get("correct_Pair_Lep_and_Jet%s_%s"%(type,jetType))
       nXbin = coHist.GetNbinsX()
       coHist.SetTitle( coHist.GetTitle()+"_%s"%(inFileName[num]) )
       print coHist.GetTitle()
+      correct_val = coHist.GetBinContent(coHist.FindBin(5))
+      wrong_val = coHist.GetBinContent(coHist.FindBin(-5))
+      #fake_val = coHist.GetBinContent(coHist.FindBin(0))
+      fake_val = 0
+      #other_val = coHist.Integral() - correct_val - wrong_val - fake_val
+      other_val = 0
+      print "Correct : %d | Wrong : %d | Fake : %d | OTHER : %d | S/TOTAL : %f | S/SQRT(S+B) : %f"%(correct_val, wrong_val, fake_val, other_val, correct_val/(correct_val+wrong_val+fake_val+other_val), correct_val/TMath.Sqrt(correct_val+wrong_val+fake_val+other_val)) 
+  
       if ( coHist.GetEntries() ==0 ) : continue
-      coHist.Scale(1./ coHist.Integral()*100)
-      """
-      binCenter=[]
-      binValue= []
-      binColor = []
-      for x in range(nXbin) :
-        binCenter.append( int(coHist.GetBinCenter(x+1)))
-        binValue.append( coHist.GetBinContent(x+1) )
-        binColor.append( x+1 )
-        
-      piePlot = TPie("pie",coHist.GetTitle(), len(binCenter), binValue, binColor )
-      """
+      coHist.Scale(1./ coHist.Integral()*10000)
       piePlot = TPie(coHist)
       piePlot.SetEntryRadiusOffset(nXbin+1 , 1)
       piePlot.MakeLegend()
