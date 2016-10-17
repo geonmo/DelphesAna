@@ -19,18 +19,19 @@ def anaTree(inFile, num) :
   for jetType in ["Jet"] :
     for type in tags :
       idx = idx+1
-      c1.cd(idx)
+      c1.cd()
       coHist = inFile.Get("correct_Pair_Lep_and_Jet%s_%s"%(type,jetType))
       nXbin = coHist.GetNbinsX()
       coHist.SetTitle( coHist.GetTitle()+"_%s"%(inFileName[num]) )
-      print coHist.GetTitle()
+      print idx, coHist.GetTitle()
       correct_val = coHist.GetBinContent(coHist.FindBin(5))
       wrong_val = coHist.GetBinContent(coHist.FindBin(-5))
-      #fake_val = coHist.GetBinContent(coHist.FindBin(0))
-      fake_val = 0
-      #other_val = coHist.Integral() - correct_val - wrong_val - fake_val
-      other_val = 0
-      print "Correct : %d | Wrong : %d | Fake : %d | OTHER : %d | S/TOTAL : %f | S/SQRT(S+B) : %f"%(correct_val, wrong_val, fake_val, other_val, correct_val/(correct_val+wrong_val+fake_val+other_val), correct_val/TMath.Sqrt(correct_val+wrong_val+fake_val+other_val)) 
+      fake_val = coHist.GetBinContent(coHist.FindBin(0))
+      #fake_val = 0
+      other_val = coHist.Integral() - correct_val - wrong_val - fake_val
+      #other_val = 0
+      print "Total : %d & Correct : %d & Wrong : %d & Fake : %d & OTHER : %d & S/TOTAL : %f & S/SQRT(S+B) : %f"%(coHist.Integral(), correct_val, wrong_val, fake_val, other_val, correct_val/(correct_val+wrong_val+fake_val+other_val), correct_val/TMath.Sqrt(correct_val+wrong_val+fake_val+other_val)) 
+
   
       if ( coHist.GetEntries() ==0 ) : continue
       coHist.Scale(1./ coHist.Integral()*10000)
@@ -45,7 +46,10 @@ def anaTree(inFile, num) :
       piePlot.SetEntryLabel( coHist.FindBin(-5)-1, "Wrong")
       piePlot.SetEntryLabel( coHist.FindBin(5)-1, "Correct")
       piePlot.SetLabelsOffset(-0.2)
+      c1.cd(idx)
       piePlot.Draw("nol <")
+      c1.Update()
+      c1.Update()
   c1.SaveAs("ChartPie_%s.png"%(inFileName[num]))
 
 if __name__ == "__main__" :
