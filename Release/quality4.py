@@ -172,6 +172,7 @@ def anaTree( tree ) :
   h0_1.SetFillStyle(3005)
   h0_2.SetFillStyle(3006)
   #h0_2.Draw("hist")
+  h0.SetTitle("Jet Charge Distribution from various parton ; Jet Charge x 100 ; Entries") 
   h0.Draw("hist")
   h0_1.Draw("histsame")
   c0.BuildLegend(0.6779449,0.7700348,0.9511278,0.9111498)
@@ -182,6 +183,7 @@ def anaTree( tree ) :
   h0.Scale(1./h0.GetEntries())
   h0_1.Scale(1./h0_1.GetEntries())
   h0_2.Scale(1./h0_2.GetEntries())
+  h0.SetTitle("Normalized Jet Charge Distribution from various parton ; Jet Charge x 100 ; Normalized Entries") 
   h0.Draw("hist")
   h0_1.Draw("histsame")
   h0_2.Draw("histsame")
@@ -397,6 +399,7 @@ def anaTree( tree ) :
 
   c15 = makeCanvas("largeCharge2DNorm_truthMatching")
   h11_1.Divide(h11)
+  h11_1.SetTitle("Fraction of correct b-pair per 2D lepton * Jet charge; Lep1_q*jet1_q ; Lep2_q*Jet2_q")
   h11_1.Draw("colztext")
   c15.SaveAs("largeCharge2DNorm_truthMatching.png")
   c15.SaveAs("plotCode/largeCharge2DNorm_truthMatching.C")
