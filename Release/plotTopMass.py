@@ -111,7 +111,8 @@ def anaTree( tree, tree2, nEvent, input, outFile, jetType ) :
    hist.Write()
    hist_norm = hist.Clone()
    hist_norm.Scale( 1./nEvent)
-   hist_norm.SetName( hist.GetTitle().Strip()+"_Norm")
+    
+   hist_norm.SetName( hist.GetTitle().strip()+"_Norm")
    hist_norm.Write() 
 
 
