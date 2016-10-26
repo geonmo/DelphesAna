@@ -18,6 +18,54 @@ DecayChannel::DecayChannel( TClonesArray* genParticles){
   channel_ = channelSelection(genParticles ) ;   
 
 }
+
+int DecayChannel::FindJetParton(TClonesArray* genParticles, int baseIdx) {
+  if ( baseIdx <0 ) return -1;
+  GenParticle* base = (GenParticle*)genParticles->At(baseIdx);
+  int absPID = abs(base->PID);
+  if ( absPID < 6 ) return baseIdx;
+
+  // First, M1
+  if ( base->M1 !=-1 ) {
+    int nextResult = FindJetParton( genParticles, base->M1);
+    if ( nextResult !=-1 ) return nextResult;
+  }
+  return -1;
+
+}
+
+int DecayChannel::FindJetParton(TClonesArray* genParticles, Jet* jet) {
+  int value = -1;
+  std::vector<GenParticle*> particles ;
+  std::vector<Track*> tracks ;
+  for ( unsigned int i=0 ; i< jet->Constituents.GetEntriesFast() ; i++ ) {
+    TObject* object = jet->Constituents.At(i) ; 
+    if ( object ==0 ) continue;
+    if ( object->IsA() == GenParticle::Class()) {
+      GenParticle* particle = (GenParticle*)object;
+      if ( particle->Charge==0 ) continue;
+      particles.push_back(particle);
+    }
+    else if ( object->IsA() == Track::Class()) {
+      Track* track = (Track*) object;
+      tracks.push_back(track);
+    }
+  } 
+  GenParticle* particle ; 
+  if ( tracks.size() >0 ) { 
+    std::sort( tracks.begin(), tracks.end(), []( Track* a, Track* b) { return a->PT > b->PT; });
+    particle = (GenParticle*)tracks[0]->Particle.GetObject();
+    value = FindJetParton(genParticles,  particle->M1);
+  }
+  if ( particles.size()>0 ) {
+    std::sort( particles.begin(), particles.end(), []( GenParticle* a, GenParticle* b) { return a->PT > b->PT; });
+    particle = particles[0];
+    value = FindJetParton(genParticles,  particle->M1); 
+  }
+  return value;
+}
+
+
 int DecayChannel::FindWboson(TClonesArray* genParticles, int baseIdx )
 {
   GenParticle* base = (GenParticle*)genParticles->At(baseIdx);
@@ -66,6 +114,12 @@ int DecayChannel::channelSelection( TClonesArray* genParticles  ) {
       if ( top_idx==-1 && genParticle->PID == 6) top_idx= i;
     if ( antitop_idx==-1 && genParticle->PID == -6 ) antitop_idx= i;
     if ( top_idx !=-1 && antitop_idx != -1 ) break;
+  }
+
+  if ( top_idx == -1 || antitop_idx == -1 ) {
+    D( std::cout<<"Can not find top quark for this events. \nPlease, check your data which include the partons(status ==3 or 13 for pythia6,8)"<<std::endl;)
+    D( std::cout<<"Skip decay channel selection."<<std::endl;)
+    return 0; 
   }
 
   int WbosonIdx1 = FindWboson( genParticles,     top_idx);

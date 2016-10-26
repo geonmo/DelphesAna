@@ -1,19 +1,16 @@
 #ifndef CATTools_CatAnalyzer_KinematicSolvers_H
 #define CATTools_CatAnalyzer_KinematicSolvers_H
 
-#include "FWCore/Utilities/interface/RandomNumberGenerator.h"
-#include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "CLHEP/Random/RandomEngine.h"
+#include <TRandom3.h>
 #include "Math/LorentzVector.h"
 #include <string>
 #include <memory>
 #include "TH1.h"
-
+#include <classes.h>
 class TtFullLepKinSolver;
 
 namespace cat {
 
-typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > LV;
 class KinematicSolver;
 
 struct KinematicSolution
@@ -65,7 +62,7 @@ struct KinematicSolution
 class KinematicSolver
 {
 public:
-  KinematicSolver(const edm::ParameterSet& pset) {}
+  KinematicSolver() {}
   virtual ~KinematicSolver() {}
   void solve(const LV met, const LV l1, const LV l2, const LV j1, const LV j2)
   {
@@ -99,7 +96,7 @@ protected:
 class TTDileptonSolver : public KinematicSolver // A dummy solver for now
 {
 public:
-  TTDileptonSolver(const edm::ParameterSet& pset): KinematicSolver(pset) {}
+  TTDileptonSolver(): KinematicSolver() {}
   void solve(const LV input[]) override;
   std::string algoName() override { return "DUMMY"; }
 };
@@ -107,7 +104,7 @@ public:
 class MT2Solver : public KinematicSolver
 {
 public:
-  MT2Solver(const edm::ParameterSet& pset);
+  MT2Solver();
   void solve(const LV input[]) override;
   std::string algoName() override { return "MT2"; }
   double mt2();
@@ -119,7 +116,7 @@ protected:
 class MAOSSolver : public MT2Solver
 {
 public:
-  MAOSSolver(const edm::ParameterSet& pset): MT2Solver(pset) {}
+  MAOSSolver(): MT2Solver() {}
   std::string algoName() override { return "MAOS"; }
   void solve(const LV input[]) override;
 };
@@ -127,7 +124,7 @@ public:
 class CMSKinSolver : public KinematicSolver
 {
 public:
-  CMSKinSolver(const edm::ParameterSet& pset);
+  CMSKinSolver();
   std::string algoName() override { return "CMSKIN"; }
   void solve(const LV input[]) override;
 
@@ -138,7 +135,7 @@ protected:
 class DESYMassLoopSolver : public KinematicSolver
 {
 public:
-  DESYMassLoopSolver(const edm::ParameterSet& pset);
+  DESYMassLoopSolver();
   void solve(const LV input[]) override;
   std::string algoName() override { return "DESYMassLoop"; }
 protected:
@@ -148,16 +145,16 @@ protected:
 class DESYSmearedSolver : public KinematicSolver
 {
 public:
-  DESYSmearedSolver(const edm::ParameterSet& pset);
+  DESYSmearedSolver();
   void solve(const LV input[]) override;
   std::string algoName() override { return "DESYSmeared"; }
-  void setRandom(CLHEP::HepRandomEngine* rng) { rng_ = rng; }
+  void setRandom(TRandom3* rng) { rng_ = rng; }
 
 protected:
   LV getSmearedLV(const LV& v, const double fE, const double dRot);
   double getRandom(TH1* h);
 
-  CLHEP::HepRandomEngine* rng_;
+  TRandom3* rng_;
   std::unique_ptr<TH1> h_jetEres_, h_jetAres_;
   std::unique_ptr<TH1> h_lepEres_, h_lepAres_;
   std::unique_ptr<TH1> h_wmass_;
