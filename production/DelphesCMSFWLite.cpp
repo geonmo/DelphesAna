@@ -232,7 +232,7 @@ void ConvertInput(fwlite::Event &event, Long64_t eventCounter,
     pid = particle.pdgId();
     status = particle.status();
     px = particle.px(); py = particle.py(); pz = particle.pz(); e = particle.energy(); mass = particle.mass();
-    x = particle.vx(); y = particle.vy(); z = particle.vz();
+    x = particle.mother(0)->vx(); y = particle.mother(0)->vy(); z = particle.mother(0)->vz();
 
     candidate = factory->NewCandidate();
 
