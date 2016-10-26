@@ -325,7 +325,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc, const char* 
           ofc.data.ttbar_mass  = (float)(cmskin_solver->t1()+cmskin_solver->t2()).mass();
         }
 
-        if ( (selLepton[0].first * selJet[i].first+selLepton[1].first* selJet[j].first)  < 0 ) {
+        if ( (selLepton[0].first * selJet[i].first+selLepton[1].first* selJet[j].first)  < -50 ) {
           if ( before_weight_charged > quality ) continue; 
           before_weight_charged = quality;
 

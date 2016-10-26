@@ -26,10 +26,10 @@ void fitTopMassNorm()
     std::vector<TH1F*> hists_GenJet;
     std::vector<TH1F*> hists_Jet;
     for( int j= 0 ; j <4 ; j++) {
-      TString histName = TString::Format("top_mass%s_Jet _Norm",histType[j]);
+      TString histName = TString::Format("top_mass%s_Jet_Norm",histType[j]);
       TH1F* tempJet = (TH1F*)(inFile->Get( histName.Data() ))->Clone();
       if ( tempJet != nullptr) hists_Jet.push_back(tempJet); 
-      TH1F* tempGenJet = (TH1F*)(inFile->Get( TString::Format("top_mass%s_GenJet _Norm",histType[j]).Data()))->Clone();
+      TH1F* tempGenJet = (TH1F*)(inFile->Get( TString::Format("top_mass%s_GenJet_Norm",histType[j]).Data()))->Clone();
       if ( tempGenJet != nullptr) hists_GenJet.push_back(tempGenJet); 
     }
     GenJetHists.push_back(hists_GenJet);
