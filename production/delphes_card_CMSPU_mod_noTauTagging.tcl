@@ -442,6 +442,7 @@ module FastJetFinder GenJetFinder {
   set ParameterR 0.5
 
   set JetPTMin 20.0
+  set JetChargeOption 1
 }
 
 #########################

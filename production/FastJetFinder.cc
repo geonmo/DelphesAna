@@ -409,8 +409,10 @@ void FastJetFinder::Process()
 
       time += TMath::Sqrt(constituent->Momentum.E())*(constituent->Position.T());
       timeWeight += TMath::Sqrt(constituent->Momentum.E());
-
-      if ( constituent->Charge!=0) {
+      int IsPU = constituent->IsRecoPU;
+      // If AreaAlgorithm==0, it may be GenJet.
+      if ( fAreaAlgorithm ==0 ) IsPU = constituent->IsPU;
+      if ( constituent->Charge!=0 && IsPU==0 ) {
         double weight=1.0;
         switch(fJetChargeOption){
           case 0:
