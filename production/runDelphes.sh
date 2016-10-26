@@ -21,6 +21,7 @@ cp delphesCode/MinBias.pileup .
 
 
 
+#DELPHES_CARD="delphes_card_CMSPU_mod_noTauTagging.tcl"
 DELPHES_CARD="delphes_card_CMSnoPU_noTauTagging.tcl"
 
 pfnInput=`edmFileUtil -d $inputfile`
