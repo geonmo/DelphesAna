@@ -156,12 +156,13 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
           }
           genPID = trackGen->PID;
           //std::cout<<"trackGen = "<<genPID<<endl;
-          if ( abs(genPID) != 11 && abs( genPID) != 13) continue;
+          if ( abs(genPID) != 11 && abs( genPID) != 13 &&abs(genPID)!=211&&abs(genPID)!=321)  continue;
           if ( track->PT < 1 ) continue;
           if ( !notice ) { std::cout<<"Jet Index : "<<i<<" Jet pT:"<<jet->PT<<"  Jet Eta "<<jet->Eta<<"  Jet Phi "<<jet->Phi<<std::endl; notice = true; }
-          cout << "    Track pt: " <<    track->PT << ", eta: " <<    track->Eta << ", phi: " <<    track->Phi << " , PID: "<<   track->PID<<" ,  GenPID: "<<genPID<<endl;
-          cout << "    Gen   pt: " << trackGen->PT << ", eta: " << trackGen->Eta << ", phi: " << trackGen->Phi << " , PID: "<<trackGen->PID<<" ,  GenPID: "<<genPID<<endl;
+          cout << "    Track pt: " <<    track->PT << ", eta: " <<    track->Eta << ", phi: " <<    track->Phi << " , mass: "<<track->P4().M()<<" ,PID: "<<   track->PID<<" ,  GenPID: "<<genPID<<endl;
+          cout << "    Gen   pt: " << trackGen->PT << ", eta: " << trackGen->Eta << ", phi: " << trackGen->Phi << " , mass: "<<trackGen->Mass<<" , PID: "<<trackGen->PID<<" ,  GenPID: "<<genPID<<endl;
         }
+        /*
         else if(object->IsA() == Tower::Class())
         {
           //std::cout<<"Call3"<<std::endl;
@@ -180,7 +181,8 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
             cout << "       Tower GENPart : " << towerGen->PT << ", eta: " << towerGen->Eta << ", phi: " << towerGen->Phi << ", GenPID: "<<towerGen->PID<<endl;
           }
         }
-        else cout<<"Other"<<std::endl;
+        */
+        //else cout<<"Other"<<std::endl;
       }
     }
   }

@@ -19,6 +19,20 @@ DecayChannel::DecayChannel( TClonesArray* genParticles){
 
 }
 
+int DecayChannel::isFromTop(TClonesArray* genParticles, int baseIdx ) {
+  if ( baseIdx <0 ) return -1;
+  GenParticle* base = (GenParticle*)genParticles->At(baseIdx);
+  int absPID = abs(base->PID);
+  if ( absPID == 6 ) return baseIdx;
+
+  // First, M1
+  if ( base->M1 !=-1 ) {
+    int nextResult = isFromTop( genParticles, base->M1 );
+    if ( nextResult !=-1 ) return nextResult;
+  }
+  return -1;
+}
+
 int DecayChannel::FindJetParton(TClonesArray* genParticles, int baseIdx) {
   if ( baseIdx <0 ) return -1;
   GenParticle* base = (GenParticle*)genParticles->At(baseIdx);
@@ -65,6 +79,21 @@ int DecayChannel::FindJetParton(TClonesArray* genParticles, Jet* jet) {
   return value;
 }
 
+
+int DecayChannel::SearchParticle(TClonesArray* genParticles, int pid, TLorentzVector cand) {
+  float dR = 999.f;
+  float delPt = 1.0f;
+  int particle_idx = -1;
+  bool found = false;
+  for( int i=0 ; i< genParticles->GetEntriesFast(); i++) {
+    GenParticle* gen = (GenParticle*)genParticles->At(i);
+    if ( gen->PID != pid) continue;
+    float dR_current = gen->P4().DeltaR( cand );
+    float delPt_current = abs(gen->PT-cand.Pt())/gen->PT;
+    if ( dR_current<dR && delPt_current< delPt ) { dR = dR_current; delPt = delPt_current; particle_idx = i; }
+  } 
+  return particle_idx;
+}
 
 int DecayChannel::FindWboson(TClonesArray* genParticles, int baseIdx )
 {
