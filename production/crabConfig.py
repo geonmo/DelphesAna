@@ -18,7 +18,7 @@ config.General.transferLogs = True
 
 config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = 'pset_delphes.py'
-config.JobType.inputFiles = ['runDelphes.sh', 'delphesProd.tar.gz', 'delphes_card_CMSPU_mod.tcl']
+config.JobType.inputFiles = ['runDelphes.sh', 'delphesProd.tar.gz', 'delphes_card_CMSnoPU_noTauTagging.tcl','delphes_card_CMSPU_mod_noTauTagging.tcl']
 config.JobType.outputFiles = ['Delphes.root']
 config.JobType.scriptExe = 'runDelphes.sh'
 config.JobType.allowUndistributedCMSSW = True
