@@ -15,6 +15,7 @@ class DecayChannel {
     static int FindJetParton(TClonesArray*,Jet*);
     static int FindJetParton(TClonesArray*,int);
     int isFromTop(TClonesArray* genParticles, int);
+    int isFromB(TClonesArray* genParticles, int);
     int SearchParticle(TClonesArray* genParticles, int pid, TLorentzVector cand);
     int FindWboson(TClonesArray* , int baseIdx );
     int FindLepton(TClonesArray* , int baseIdx );

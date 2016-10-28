@@ -32,6 +32,19 @@ int DecayChannel::isFromTop(TClonesArray* genParticles, int baseIdx ) {
   }
   return -1;
 }
+int DecayChannel::isFromB(TClonesArray* genParticles, int baseIdx ) {
+  if ( baseIdx <0 ) return -1;
+  GenParticle* base = (GenParticle*)genParticles->At(baseIdx);
+  int absPID = abs(base->PID);
+  if ( absPID == 5 ) return baseIdx;
+
+  // First, M1
+  if ( base->M1 !=-1 ) {
+    int nextResult = isFromTop( genParticles, base->M1 );
+    if ( nextResult !=-1 ) return nextResult;
+  }
+  return -1;
+}
 
 int DecayChannel::FindJetParton(TClonesArray* genParticles, int baseIdx) {
   if ( baseIdx <0 ) return -1;
@@ -88,6 +101,10 @@ int DecayChannel::SearchParticle(TClonesArray* genParticles, int pid, TLorentzVe
   for( int i=0 ; i< genParticles->GetEntriesFast(); i++) {
     GenParticle* gen = (GenParticle*)genParticles->At(i);
     if ( gen->PID != pid) continue;
+    int top_idx = isFromTop(genParticles, i);
+    int b_idx = isFromB(genParticles, i);
+    if ( top_idx ==-1 || b_idx == -1 ) continue;
+
     float dR_current = gen->P4().DeltaR( cand );
     float delPt_current = abs(gen->PT-cand.Pt())/gen->PT;
     if ( dR_current<dR && delPt_current< delPt ) { dR = dR_current; delPt = delPt_current; particle_idx = i; }
