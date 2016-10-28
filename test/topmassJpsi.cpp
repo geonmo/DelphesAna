@@ -94,11 +94,45 @@ public :
   Float_t phi() { return pos_.Phi(); }
   Int_t charge() { return charge_; }
   Int_t dau_pid(Int_t idx) { return dau_pid_[idx]; }
+  Int_t softLep() { return nLep_; }
   TLV dau(Int_t idx) { 
     if ( idx>3) { std::cout<<"Wrong idx. It is too high."<<std::endl; return TLorentzVector(); }
     //if ( idx > nDau_-1 ) { std::cout<<"Wrong idx. It is null ptr."<<std::endl; return TLorentzVector(); } 
     return daus_[idx]; 
   }
+  Float_t vx() {
+    if ( nDau_==2) {
+      float x = (vx_[0]+vx_[1])/2.0;
+      return x;
+    }
+    else if (nDau_==3) {
+      float x = (vx_[0]+vx_[1]+vx_[2])/3.0;
+      return x;
+    }
+    else return 0.0f;  
+  } 
+  Float_t vy() {
+    if ( nDau_==2) {
+      float y = (vy_[0]+vy_[1])/2.0;
+      return y;
+    }
+    else if (nDau_==3) {
+      float y = (vy_[0]+vy_[1]+vy_[2])/3.0;
+      return y;
+    }
+    else return 0.0f;  
+  } 
+  Float_t vz() {
+    if ( nDau_==2) {
+      float z = (vz_[0]+vz_[1])/2.0;
+      return z;
+    }
+    else if (nDau_==3) {
+      float z = (vz_[0]+vz_[1]+vz_[2])/3.0;
+      return z;
+    }
+    else return 0.0f;  
+  } 
   Float_t vx(Int_t idx) {
     if ( idx< nDau_) { return vx_[idx]; }
     else { std::cout<<"Wrong vertex position. It is null ptr"<<std::endl; return 0.f; }
@@ -111,16 +145,23 @@ public :
     if ( idx< nDau_) { return vz_[idx]; }
     else { std::cout<<"Wrong vertex position. It is null ptr"<<std::endl; return 0.f; }
   }
+  Float_t L3D() {
+      return TMath::Sqrt(vx()*vx()+vy()*vy()+vz()*vz());
+  }
+  Float_t LXY() {
+      return TMath::Sqrt(vx()*vx()+vy()*vy());
+  }
+
   Float_t vxd() {
     if ( nDau_ ==2 ) {
       float vxd_temp = vx_[0]-vx_[1];
-      return TMath::Sqrt( vxd_temp*vxd_temp) ;
+      return abs( vxd_temp);
     }
     else if ( nDau_ ==3 ) {
       float vxd_temp1 = vx_[0]-vx_[1];
       float vxd_temp2 = vx_[0]-vx_[2];
       float vxd_temp3 = vx_[1]-vx_[2];
-      float vxd__ = (TMath::Sqrt(vxd_temp1*vxd_temp1)+TMath::Sqrt(vxd_temp2*vxd_temp2)+TMath::Sqrt(vxd_temp3*vxd_temp3)) /3.;
+      float vxd__ = (abs(vxd_temp1) + abs(vxd_temp2) + abs(vxd_temp3)) /3.;
       return vxd__;
     }
     else return 0; 
@@ -128,13 +169,13 @@ public :
   Float_t vyd() {
     if ( nDau_ ==2 ) {
       float vyd_temp = vy_[0]-vy_[1];
-      return TMath::Sqrt( vyd_temp*vyd_temp) ;
+      return abs(vyd_temp) ;
     }
     else if ( nDau_ ==3 ) {
       float vyd_temp1 = vy_[0]-vy_[1];
       float vyd_temp2 = vy_[0]-vy_[2];
       float vyd_temp3 = vy_[1]-vy_[2];
-      float vyd__ = (TMath::Sqrt(vyd_temp1*vyd_temp1)+TMath::Sqrt(vyd_temp2*vyd_temp2)+TMath::Sqrt(vyd_temp3*vyd_temp3)) /3.;
+      float vyd__ = (abs(vyd_temp1) + abs(vyd_temp2) + abs(vyd_temp3)) /3.;
       return vyd__;
     }
     else return 0; 
@@ -148,7 +189,7 @@ public :
       float vzd_temp1 = vz_[0]-vz_[1];
       float vzd_temp2 = vz_[0]-vz_[2];
       float vzd_temp3 = vz_[1]-vz_[2];
-      float vzd__ = (TMath::Sqrt(vzd_temp1*vzd_temp1)+TMath::Sqrt(vzd_temp2*vzd_temp2)+TMath::Sqrt(vzd_temp3*vzd_temp3)) /3.;
+      float vzd__ = (abs(vzd_temp1) + abs(vzd_temp2) + abs(vzd_temp3)) /3.;
       return vzd__;
     }
     else return 0; 
@@ -156,15 +197,15 @@ public :
   void setDRPT(DecayChannel dc, TClonesArray* branchParticle, int pdgId) {
     int mcTruth = dc.SearchParticle(branchParticle, pdgId, pos_ );
     if ( mcTruth == -1 ) return;
-    auto gen = (GenParticle*)branchParticle->At( mcTruth );
-    dRTrue_ = gen->P4().DeltaR( pos_ );
-    delPtTrue_ = abs(gen->PT-pos_.Pt())/gen->PT;
-
     int isFromTop =0;
     int isFromTopIdx = dc.isFromTop( branchParticle, mcTruth );
     if ( isFromTopIdx != -1 ) isFromTop_ = ((GenParticle*)branchParticle->At( isFromTopIdx))->PID;
-  }
 
+    auto gen = (GenParticle*)branchParticle->At( mcTruth );
+    dRTrue_ = gen->P4().DeltaR( pos_ );
+    delPtTrue_ = abs(gen->PT-pos_.Pt())/gen->PT;
+  }
+  void setSoftLepton(int nLep) {nLep_ = nLep;}
 
 
 //float dRTrue, float delPtTrue) { dRTrue_ = dRTrue; delPtTrue_ = delPtTrue_; }
@@ -185,6 +226,7 @@ private :
   Int_t isFromTop_;
   Float_t delPtTrue_;
   Float_t dRTrue_;
+  Int_t nLep_;
 };    
 
 std::pair< TLorentzVector, TLorentzVector> lsvPairing( QLV lep1 , QLV lep2, SecVtx* sv) {
@@ -236,7 +278,10 @@ public :
 
   Int_t jpsi_charge, jpsi_isFromTop;
   Float_t jpsi_pt, jpsi_eta, jpsi_phi, jpsi_mass;
-  Float_t jpsi_dx, jpsi_dy, jpsi_dz;
+  Float_t jpsi_vx, jpsi_vy,  jpsi_vz;
+  Float_t jpsi_dx, jpsi_dy,  jpsi_dz;
+  Float_t jpsi_L3D, jpsi_LXY;
+  Int_t jpsi_softlep;
   Float_t jpsi_dRTrue, jpsi_delPtTrue;
   
 
@@ -245,7 +290,10 @@ public :
 
   Int_t d0_charge, d0_isFromTop;
   Float_t d0_pt, d0_eta, d0_phi, d0_mass;
+  Float_t d0_vx, d0_vy,  d0_vz;
   Float_t d0_dx, d0_dy, d0_dz;
+  Float_t d0_L3D, d0_LXY;
+  Int_t d0_softlep;
   Float_t d0_dRTrue, d0_delPtTrue;
 
   Int_t d0_dau_pid[2];
@@ -253,7 +301,10 @@ public :
 
   Int_t dstar_charge, dstar_isFromTop;
   Float_t dstar_pt, dstar_eta, dstar_phi, dstar_mass, dstar_diffmass;
+  Float_t dstar_vx, dstar_vy,  dstar_vz;
   Float_t dstar_dx, dstar_dy, dstar_dz;
+  Float_t dstar_L3D, dstar_LXY;
+  Int_t dstar_softlep;
   Float_t dstar_dRTrue, dstar_delPtTrue;
 
   Int_t dstar_dau_pid[3];
@@ -261,17 +312,9 @@ public :
 
 
   Float_t ljpsi_pt[2], ljpsi_eta[2], ljpsi_phi[2], ljpsi_mass[2];
-  Float_t ljpsi_vx[2], ljpsi_vy[2],  ljpsi_vz[2];
-  Float_t ljpsi_dx[2], ljpsi_dy[2],  ljpsi_dz[2];
   Float_t ld0_pt[2], ld0_eta[2], ld0_phi[2], ld0_mass[2];
-  Float_t ld0_vx[2], ld0_vy[2],  ld0_vz[2];
-  Float_t ld0_dx[2], ld0_dy[2],  ld0_dz[2];
   Float_t ldstar_pt[2], ldstar_eta[2], ldstar_phi[2], ldstar_mass[2];
-  Float_t ldstar_vx[2], ldstar_vy[2],  ldstar_vz[2];
-  Float_t ldstar_dx[2], ldstar_dy[2],  ldstar_dz[2];
  
-
-
   void reset() {
     dataType=0;
     jpsi_charge =0; 
@@ -280,9 +323,15 @@ public :
     jpsi_eta = -9.0; 
     jpsi_phi = -9.0; 
     jpsi_mass = -9.0;
+    jpsi_vx = 0.f;
+    jpsi_vy = 0.f;
+    jpsi_vz = 0.f;
     jpsi_dx = 0.f;
     jpsi_dy = 0.f;
     jpsi_dz = 0.f;
+    jpsi_LXY= 0.f;
+    jpsi_L3D= 0.f;
+    jpsi_softlep=0;
     jpsi_dRTrue = 999.f;
     jpsi_delPtTrue = 1.f;
  
@@ -292,9 +341,15 @@ public :
     d0_eta = -9.0; 
     d0_phi = -9.0; 
     d0_mass = -9.0; 
+    d0_vx = 0.f;
+    d0_vy = 0.f;
+    d0_vz = 0.f;
     d0_dx = 0.f;
     d0_dy = 0.f;
     d0_dz = 0.f;
+    d0_LXY= 0.f;
+    d0_L3D= 0.f;
+    d0_softlep= 0;
     d0_dRTrue = 999.f;
     d0_delPtTrue = 1.f;
 
@@ -305,9 +360,15 @@ public :
     dstar_phi = -9.0; 
     dstar_mass = -9.0; 
     dstar_diffmass = -9.0; 
+    dstar_vx = 0.f;
+    dstar_vy = 0.f;
+    dstar_vz = 0.f;
     dstar_dx = 0.f;
     dstar_dy = 0.f;
     dstar_dz = 0.f;
+    dstar_LXY= 0.f;
+    dstar_L3D= 0.f;
+    dstar_softlep= 0;
     dstar_dRTrue = 999.f;
     dstar_delPtTrue = 1.f;
     for( int idx = 0; idx< 3 ; idx++) { 
@@ -341,35 +402,16 @@ public :
       ljpsi_eta[idx] = -9.0;
       ljpsi_phi[idx] = -9.0;
       ljpsi_mass[idx] = -9.0;
-      ljpsi_vx[idx] = 0.f;
-      ljpsi_vy[idx] = 0.f;
-      ljpsi_vz[idx] = 0.f;
-      ljpsi_dx[idx] = 0.f;
-      ljpsi_dy[idx] = 0.f;
-      ljpsi_dz[idx] = 0.f;
  
       ld0_pt[idx] = -9.0;
       ld0_eta[idx] = -9.0;
       ld0_phi[idx] = -9.0;
       ld0_mass[idx] = -9.0;
-      ld0_vx[idx] = 0.f;
-      ld0_vy[idx] = 0.f;
-      ld0_vz[idx] = 0.f;
-      ld0_dx[idx] = 0.f;
-      ld0_dy[idx] = 0.f;
-      ld0_dz[idx] = 0.f;
  
       ldstar_pt[idx] = -9.0;
       ldstar_eta[idx] = -9.0;
       ldstar_phi[idx] = -9.0;
       ldstar_mass[idx] = -9.0;
-
-      ldstar_vx[idx] = 0.f;
-      ldstar_vy[idx] = 0.f;
-      ldstar_vz[idx] = 0.f;
-      ldstar_dx[idx] = 0.f;
-      ldstar_dy[idx] = 0.f;
-      ldstar_dz[idx] = 0.f;
  
     }
   }
@@ -382,9 +424,15 @@ public :
       jpsi_eta = jpsi->eta();
       jpsi_phi = jpsi->phi();
       jpsi_mass = jpsi->mass();
+      jpsi_vx = jpsi->vx();
+      jpsi_vy = jpsi->vy();
+      jpsi_vz = jpsi->vz();
       jpsi_dx = jpsi->vxd();
       jpsi_dy = jpsi->vyd();
       jpsi_dz = jpsi->vzd();
+      jpsi_LXY = jpsi->LXY();
+      jpsi_L3D = jpsi->L3D();
+      jpsi_softlep = jpsi->softLep();
       jpsi_dRTrue = jpsi->DR();
       jpsi_delPtTrue = jpsi->DPT();
 
@@ -394,13 +442,6 @@ public :
         jpsi_dau_eta[idx]  = jpsi->dau(idx).Eta();
         jpsi_dau_phi[idx]  = jpsi->dau(idx).Phi();
         jpsi_dau_mass[idx] = jpsi->dau(idx).M();
-
-        ljpsi_vx[idx] = jpsi->vx(0);
-        ljpsi_vy[idx] = jpsi->vy(0);
-        ljpsi_vz[idx] = jpsi->vz(0);
-        ljpsi_dx[idx] = jpsi->vxd();
-        ljpsi_dy[idx] = jpsi->vyd();
-        ljpsi_dz[idx] = jpsi->vzd();
       }
     }
 
@@ -411,9 +452,15 @@ public :
       d0_eta = d0->eta();
       d0_phi = d0->phi();
       d0_mass = d0->mass();
+      d0_vx = d0->vx();
+      d0_vy = d0->vy();
+      d0_vz = d0->vz();
       d0_dx = d0->vxd();
       d0_dy = d0->vyd();
       d0_dz = d0->vzd();
+      d0_LXY = d0->LXY();
+      d0_L3D = d0->L3D();
+      d0_softlep = d0->softLep();
       d0_dRTrue = d0->DR();
       d0_delPtTrue = d0->DPT();
       for ( int idx =0 ; idx<2 ; idx++) {
@@ -422,13 +469,6 @@ public :
         d0_dau_eta[idx]  = d0->dau(idx).Eta();
         d0_dau_phi[idx]  = d0->dau(idx).Phi();
         d0_dau_mass[idx] = d0->dau(idx).M();
-
-        ld0_vx[idx] = d0->vx(0);
-        ld0_vy[idx] = d0->vy(0);
-        ld0_vz[idx] = d0->vz(0);
-        ld0_dx[idx] = d0->vxd();
-        ld0_dy[idx] = d0->vyd();
-        ld0_dz[idx] = d0->vzd();
       }
     }
 
@@ -440,9 +480,15 @@ public :
       dstar_phi = dstar->phi();
       dstar_mass = dstar->mass();
       dstar_diffmass = dstar->mass() - d0->mass();
+      dstar_vx = dstar->vx();
+      dstar_vy = dstar->vy();
+      dstar_vz = dstar->vz();
       dstar_dx = dstar->vxd();
       dstar_dy = dstar->vyd();
       dstar_dz = dstar->vzd();
+      dstar_LXY = dstar->LXY();
+      dstar_L3D = dstar->L3D();
+      dstar_softlep = dstar->softLep();
       dstar_dRTrue = dstar->DR();
       dstar_delPtTrue = dstar->DPT();
       for ( int idx =0 ; idx<3 ; idx++) {
@@ -451,14 +497,6 @@ public :
         dstar_dau_eta[idx]  = dstar->dau(idx).Eta();
         dstar_dau_phi[idx]  = dstar->dau(idx).Phi();
         dstar_dau_mass[idx] = dstar->dau(idx).M();
-      }
-      for ( int idx =0 ; idx<2 ; idx++) {
-        ldstar_vx[idx] = dstar->vx(0);
-        ldstar_vy[idx] = dstar->vy(0);
-        ldstar_vz[idx] = dstar->vz(0);
-        ldstar_dx[idx] = dstar->vxd();
-        ldstar_dy[idx] = dstar->vyd();
-        ldstar_dz[idx] = dstar->vzd();
       }
     }
 
@@ -666,17 +704,14 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
       for( auto track : tracks) {
         std::cout<< track->PT << "( "<<track->PID<<")  ";
       }
+      int nLep = 0;
+      for( int i= 0 ; i<tracks.size() ; i++) {
+        if ( abs(tracks[i]->PID)==11 || abs(tracks[i]->PID)==13) nLep++;
+      }
+
       std::cout<<std::endl;
-      if ( tracks.size() <=1 ) continue;
+      if ( tracks.size() <2 ) continue;
       for( unsigned int firstTrack = 0 ; firstTrack< tracks.size()-1 ; firstTrack++) {
-        //int isFromTop=0, isFromTopIdx=-1;
-        //int motherIdx = ((GenParticle*)(tracks[firstTrack]->Particle.GetObject()))->M1;
-        //if ( motherIdx ==-1 ) isFromTop = 0; 
-        //else { 
-        //  isFromTopIdx = dc.isFromTop( branchParticle, motherIdx );
-        //  if ( isFromTopIdx != -1 ) isFromTop = ((GenParticle*)branchParticle->At( isFromTopIdx))->PID;
-        //  else isFromTop=0;
-        //}
         for( unsigned int secondTrack = firstTrack+1 ; secondTrack< tracks.size() ; secondTrack++) {
           Int_t pidMul = tracks[firstTrack]->PID*tracks[secondTrack]->PID;
           if ( pidMul >0 )  continue;
@@ -686,11 +721,11 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
             TLorentzVector secondTrackLV = TracktoTLV(tracks[secondTrack]);
 
             TLorentzVector jpsiCand = firstTrackLV+secondTrackLV;
-            if ( jpsiCand.M() > 2 && jpsiCand.M()<4 ) { 
+            if ( jpsiCand.M()>2.5 && jpsiCand.M()<3.5) {
               ofc.GetTH1("jpsi_mass")->Fill( jpsiCand.M());
               jpsi = new SecVtx( tracks[firstTrack], tracks[secondTrack]);
-              jpsi->setDRPT( dc, branchParticle, 443); 
-              //jpsi->setFromTop(isFromTop);
+              jpsi->setDRPT( dc, branchParticle, 443);
+              jpsi->setSoftLepton(nLep); 
               flag_jpsi = true;
               nJpsi++;
               std::cout<<"jpsi"<<std::endl;
@@ -698,42 +733,46 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
           }
           // For D0,
           if ( pidMul == -67731) {
-            TLorentzVector d0Cand = TracktoTLV(tracks[firstTrack])+TracktoTLV(tracks[secondTrack]);
-            if ( d0Cand.M()>1.6 && d0Cand.M()<2.2) {
-              for( unsigned int pionTrack = 0 ; pionTrack < tracks.size() ; pionTrack++) {
-                if ( firstTrack == pionTrack ) continue;
-                if ( secondTrack == pionTrack ) continue;
-                if ( !flag_dstar && (tracks[pionTrack]->PID * tracks[firstTrack]->PID == 44521 || tracks[pionTrack]->PID*tracks[secondTrack]->PID == 44521 )) {
-                  auto dstarCand = d0Cand+ TracktoTLV(tracks[pionTrack]);
-                  float diffMass = dstarCand.M() - d0Cand.M(); 
-                  if ( diffMass> 0.135 && diffMass<0.170 ) {
-                    if ( !flag_d0 ) nD0++;
-                    d0 = new SecVtx( tracks[firstTrack], tracks[secondTrack]);
-                    d0->setDRPT( dc, branchParticle, 421); 
-                    flag_d0 = true;
-
-                    dstar = new SecVtx( d0, tracks[pionTrack]);
-                    dstar->setDRPT( dc, branchParticle, 421*dstar->charge() ); 
-                    ofc.GetTH1("dstar_mass")->Fill( dstarCand.M());
-                    ofc.GetTH1("dstar_diffmass")->Fill( dstarCand.M()- d0Cand.M());
-                    flag_dstar = true;
-                    std::cout<<"D*"<<std::endl;
-                    nDstar++;
-                    // if D* is found, D0 also be kept.
-                    ofc.GetTH1("d0_mass")->Fill( d0Cand.M());
-                    std::cout<<"D0"<<std::endl;
-                  }
+            auto d0Cand = TracktoTLV(tracks[firstTrack])+TracktoTLV(tracks[secondTrack]);
+            for( unsigned int pionTrack = 0 ; pionTrack < tracks.size() ; pionTrack++) {
+              if ( firstTrack == pionTrack ) continue;
+              if ( secondTrack == pionTrack ) continue;
+              if ( !flag_dstar && (tracks[pionTrack]->PID * tracks[firstTrack]->PID == 44521 || tracks[pionTrack]->PID*tracks[secondTrack]->PID == 44521 )) {
+                if ( d0Cand.M() < 1.7 || d0Cand.M()>2.0 ) continue;
+                if ( !flag_d0) {
+                  nD0++;
+                  d0 = new SecVtx( tracks[firstTrack], tracks[secondTrack]);
+                  d0->setDRPT( dc, branchParticle, 421); 
+                  d0->setSoftLepton(nLep); 
+                  flag_d0 = true;
+                  ofc.GetTH1("d0_mass")->Fill( d0Cand.M());
+                  std::cout<<"D0"<<std::endl;
                 }
-              }
-              // If D0 is found first, it will be kept.
-              if ( (!flag_d0)  ) {
+                
+                auto dstarCand = d0Cand+ TracktoTLV(tracks[pionTrack]);
+                float diffMass = dstarCand.M() - d0Cand.M(); 
+                if ( diffMass > 0.135 && diffMass<0.170) {
+                  dstar = new SecVtx( d0, tracks[pionTrack]);
+                  dstar->setDRPT( dc, branchParticle, 413*dstar->charge() ); 
+                  dstar->setSoftLepton(nLep); 
+                  ofc.GetTH1("dstar_mass")->Fill( dstarCand.M());
+                  ofc.GetTH1("dstar_diffmass")->Fill( dstarCand.M()- d0Cand.M());
+                  flag_dstar = true;
+                  std::cout<<"D*"<<std::endl;
+                  nDstar++;
+                }
+              } 
+            }
+            // If D0 is found first, it will be kept.
+            if ( (!flag_d0)  ) {
+              if ( d0Cand.M() > 1.7 && d0Cand.M()<2.0 ) {
+                d0 = new SecVtx( tracks[firstTrack], tracks[secondTrack]);
+                d0->setDRPT( dc, branchParticle, 421); 
+                d0->setSoftLepton(nLep); 
+                flag_d0 = true;
                 ofc.GetTH1("d0_mass")->Fill( d0Cand.M());
                 std::cout<<"D0"<<std::endl;
                 nD0++;
-                d0 = new SecVtx( tracks[firstTrack], tracks[secondTrack]);
-                d0->setDRPT( dc, branchParticle, 421); 
-                //d0->setFromTop(isFromTop);
-                flag_d0 = true;
               }
             }
           }
@@ -875,21 +914,20 @@ int main(int argc, char* argv[])
   // Lepton
   brC += "lep_charge[2]/I:lep_pid[2]/I:lep_pt[2]/F:lep_eta[2]/F:lep_phi[2]/F:lep_mass[2]/F:jpsi_charge/I:jpsi_isFromTop/I:";
   // Jpsi
-  brC += "jpsi_pt/F:jpsi_eta/F:jpsi_phi/F:jpsi_mass/F:jpsi_dx/F:jpsi_dy/F:jpsi_dz/F:jpsi_dRTrue/F:jpsi_delPtTrue/F:jpsi_dau_pid[2]/I:jpsi_dau_pt[2]/F:jpsi_dau_eta[2]/F:jpsi_dau_phi[2]/F:jpsi_dau_mass[2]/F:";
+  brC += "jpsi_pt/F:jpsi_eta/F:jpsi_phi/F:jpsi_mass/F:jpsi_vx/F:jpsi_vy/F:jpsi_vz/F:jpsi_dx/F:jpsi_dy/F:jpsi_dz/F:jpsi_LXY/F:jpsi_L3D/F:jpsi_softlep/I:jpsi_dRTrue/F:jpsi_delPtTrue/F:jpsi_dau_pid[2]/I:jpsi_dau_pt[2]/F:jpsi_dau_eta[2]/F:jpsi_dau_phi[2]/F:jpsi_dau_mass[2]/F:";
   // d0
-  brC += "d0_charge/I:d0_isFromTop/I:d0_pt/F:d0_eta/F:d0_phi/F:d0_mass/F:d0_dx/F:d0_dy/F:d0_dz/F:d0_dRTrue/F:d0_delPtTrue/F:d0_dau_pid[2]/I:d0_dau_pt[2]/F:d0_dau_eta[2]/F:d0_dau_phi[2]/F:d0_dau_mass[2]/F:";
+  brC += "d0_charge/I:d0_isFromTop/I:d0_pt/F:d0_eta/F:d0_phi/F:d0_mass/F:d0_vx/F:d0_vy/F:d0_vz/F:d0_dx/F:d0_dy/F:d0_dz/F:d0_LXY/F:d0_L3D/F:d0_softlep/I:d0_dRTrue/F:d0_delPtTrue/F:d0_dau_pid[2]/I:d0_dau_pt[2]/F:d0_dau_eta[2]/F:d0_dau_phi[2]/F:d0_dau_mass[2]/F:";
   // dstar
-  brC += "dstar_charge/I:dstar_isFromTop/I:dstar_pt/F:dstar_eta/F:dstar_phi/F:dstar_mass/F:dstar_diffmass/F:dstar_dx/F:dstar_dy/F:dstar_dz/F:dstar_dRTrue/F:dstar_delPtTrue/F:dstar_dau_pid[3]/F:dstar_dau_pt[3]/F:dstar_dau_eta[3]/F:dstar_dau_phi[3]/F:dstar_dau_mass[3]/F";
+  brC += "dstar_charge/I:dstar_isFromTop/I:dstar_pt/F:dstar_eta/F:dstar_phi/F:dstar_mass/F:dstar_diffmass/F:dstar_vx/F:dstar_vy/F:dstar_vz/F:dstar_dx/F:dstar_dy/F:dstar_dz/F:dstar_LXY/F:dstar_L3D/F:dstar_softlep/I:dstar_dRTrue/F:dstar_delPtTrue/F:dstar_dau_pid[3]/F:dstar_dau_pt[3]/F:dstar_dau_eta[3]/F:dstar_dau_phi[3]/F:dstar_dau_mass[3]/F";
   // lSV
   TString brC2 = TString("");
-  brC2 += "ljpsi_pt[2]/F:ljpsi_eta[2]/F:ljpsi_phi[2]/F:ljpsi_mass[2]/F:ljpsi_vx[2]/F:ljpsi_vy[2]/F:ljpsi_vz[2]/F:ljpsi_dx[2]/F:ljpsi_dy[2]/F:ljpsi_dz[2]/F:";
-  brC2 += "ld0_pt[2]/F:ld0_eta[2]/F:ld0_phi[2]/F:ld0_mass[2]/F:ld0_vx[2]/F:ld0_vy[2]/F:ld0_vz[2]/F:ld0_dx[2]/F:ld0_dy[2]/F:ld0_dz[2]/F:";
-  brC2 += "ldstar_pt[2]/F:ldstar_eta[2]/F:ldstar_phi[2]/F:ldstar_mass[2]/F:ldstar_vx[2]/F:ldstar_vy[2]/F:ldstar_vz[2]/F:ldstar_dx[2]/F:ldstar_dy[2]/F:ldstar_dz[2]/F";
+  brC2 += "ljpsi_pt[2]/F:ljpsi_eta[2]/F:ljpsi_phi[2]/F:ljpsi_mass[2]/F:";
+  brC2 += "ld0_pt[2]/F:ld0_eta[2]/F:ld0_phi[2]/F:ld0_mass[2]/F:";
+  brC2 += "ldstar_pt[2]/F:ldstar_eta[2]/F:ldstar_phi[2]/F:ldstar_mass[2]/F";
 
   std::cout<<brC<<std::endl;
   BookingTree(ofc, "SVTree", brC.Data());
   addBranch( ofc,"LSVTree", &ofc.data.ljpsi_pt[0], brC2.Data());                      
-  //BookingTree(ofc,"JpsiTree", "dataType/I:lep_charge[2]/I:lep_pid[2]/I:lep_pt[2]/F:lep_eta[2]/F:lep_phi[2]/F:lep_mass[2]/F:jpsi_charge/I:jpsi_isFromTop/I:jpsi_pt/F:jpsi_eta/F:jpsi_phi/F:jpsi_mass/F:jpsi_dx/F:jpsi_dy/F:jpsi_dz/F:jpsi_dRTrue/F:jpsi_delPtTrue/F:jpsi_dau_pid[2]/I:jpsi_dau_pt[2]/F:jpsi_dau_eta[2]/F:jpsi_dau_phi[2]/F:jpsi_dau_mass[2]/F:d0_charge/I:d0_isFromTop/I:d0_pt/F:d0_eta/F:d0_phi/F:d0_mass/F:d0_dx/F:d0_dy/F:d0_dz/F:d0_dRTrue/F:d0_delPtTrue/F:d0_dau_pid[2]/I:d0_dau_pt[2]/F:d0_dau_eta[2]/F:d0_dau_phi[2]/F:d0_dau_mass[2]/F:dstar_charge/I:dstar_isFromTop/I:dstar_pt/F:dstar_eta/F:dstar_phi/F:dstar_mass/F:dstar_diffmass/F:dstar_dx/F:dstar_dy/F:dstar_dz/F:dstar_dRTrue/F:dstar_delPtTrue/F:dstar_dau_pid[3]/F:dstar_dau_pt[3]/F:dstar_dau_eta[3]/F:dstar_dau_phi[3]/F:dstar_dau_mass[3]/F");
   AnalyseEvents(treeReader,ofc);
 
   Write(ofc);
