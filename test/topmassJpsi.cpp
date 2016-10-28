@@ -25,6 +25,17 @@ typedef std::pair<int, LV> QLV;
 typedef std::pair<int, Jet*> QJET;
 typedef TLorentzVector TLV;
 
+TLorentzVector TracktoTLV( Track* track ) {
+    TLV track_TLV = track->P4();
+    double track_mass =0.;
+    if      ( abs(track->PID)==11)  track_mass = 0.000511169;
+    else if ( abs(track->PID)==13)  track_mass = 0.105652;
+    else if ( abs(track->PID)==211) track_mass = 0.139526;
+    else if ( abs(track->PID)==321) track_mass = 0.493652;
+    TLorentzVector newTrack;
+    newTrack.SetPtEtaPhiM( track_TLV.Pt(), track_TLV.Eta(), track_TLV.Phi(), track_mass);
+    return newTrack;
+}
 
 
 
@@ -37,27 +48,15 @@ public :
 
     float track1_mass = 0, track2_mass = 0;
     
-    if      ( abs(trackA->PID)==11) track1_mass =  0.000511169;
-    else if ( abs(trackA->PID)==13) track1_mass = 0.105652;
-    else if ( abs(trackA->PID)==211) track1_mass = 0.139526;
-    else if ( abs(trackA->PID)==321) track1_mass = 0.493652;
-
-    if      ( abs(trackB->PID)==11) track2_mass =  0.000511169;
-    else if ( abs(trackB->PID)==13) track2_mass = 0.105652;
-    else if ( abs(trackB->PID)==211) track2_mass = 0.139526;
-    else if ( abs(trackB->PID)==321) track2_mass = 0.493652;
-
-    auto trackA_LV = trackA->P4();
-    auto trackB_LV = trackB->P4();
-    trackA_LV.SetPtEtaPhiM( trackA_LV.Pt(), trackA_LV.Eta(), trackA_LV.Phi(), track1_mass);
-    trackB_LV.SetPtEtaPhiM( trackB_LV.Pt(), trackB_LV.Eta(), trackB_LV.Phi(), track2_mass);
-    pos_ = trackA_LV + trackB_LV;
+    auto trackA_TLV = TracktoTLV(trackA);
+    auto trackB_TLV = TracktoTLV(trackB);
+    pos_ = trackA_TLV + trackB_TLV;
 
     dau_pid_[0] = trackA->PID;
     dau_pid_[1] = trackB->PID;
     charge_ = (trackA->Charge + trackB->Charge);
-    daus_[0] = trackA_LV;
-    daus_[1] = trackB_LV;
+    daus_[0] = trackA_TLV;
+    daus_[1] = trackB_TLV;
     vx_[0] = trackA->X;
     vx_[1] = trackB->X;
     vy_[0] = trackA->Y;
@@ -68,20 +67,15 @@ public :
   }
   SecVtx(SecVtx* secvtxA, Track* trackB) {
     float track2_mass = 0;
-    if      ( abs(trackB->PID)==11) track2_mass =  0.000511169;
-    else if ( abs(trackB->PID)==13) track2_mass = 0.105652;
-    else if ( abs(trackB->PID)==211) track2_mass = 0.139526;
-    else if ( abs(trackB->PID)==321) track2_mass = 0.493652;
-    auto trackB_LV = trackB->P4();
-    trackB_LV.SetPtEtaPhiM( trackB_LV.Pt(), trackB_LV.Eta(), trackB_LV.Phi(), track2_mass);
-    pos_ = secvtxA->P4() + trackB_LV;
+    auto trackB_TLV = TracktoTLV(trackB);
+    pos_ = secvtxA->P4() + trackB_TLV;
     charge_ = trackB->PID/abs(trackB->PID);
     dau_pid_[0] = secvtxA->dau_pid(0);
     dau_pid_[1] = secvtxA->dau_pid(1);
     dau_pid_[2] = trackB->PID;
     daus_[0] = secvtxA->dau(0);
     daus_[1] = secvtxA->dau(1);
-    daus_[2] = trackB_LV;
+    daus_[2] = trackB_TLV;
     vx_[0] = secvtxA->vx(0);
     vx_[1] = secvtxA->vx(1);
     vx_[2] = trackB->X;
@@ -459,11 +453,9 @@ public :
         dstar_dau_mass[idx] = dstar->dau(idx).M();
       }
       for ( int idx =0 ; idx<2 ; idx++) {
-      std::cout<<"D* init3"<<std::endl;
         ldstar_vx[idx] = dstar->vx(0);
         ldstar_vy[idx] = dstar->vy(0);
         ldstar_vz[idx] = dstar->vz(0);
-      std::cout<<"D* init4"<<std::endl;
         ldstar_dx[idx] = dstar->vxd();
         ldstar_dy[idx] = dstar->vyd();
         ldstar_dz[idx] = dstar->vzd();
@@ -578,6 +570,8 @@ int nBJet( TClonesArray* branchParticle, std::vector<QJET> jets) {
 }
 
 
+
+
 //------------------------------------------------------------------------------
 void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
 {
@@ -688,8 +682,8 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
           if ( pidMul >0 )  continue;
           // For J/Psi, 
           if ( !flag_jpsi && (pidMul == -121 || pidMul == -169 )) {
-            TLorentzVector firstTrackLV = tracks[firstTrack]->P4();
-            TLorentzVector secondTrackLV = tracks[secondTrack]->P4();
+            TLorentzVector firstTrackLV = TracktoTLV(tracks[firstTrack]);
+            TLorentzVector secondTrackLV = TracktoTLV(tracks[secondTrack]);
 
             TLorentzVector jpsiCand = firstTrackLV+secondTrackLV;
             if ( jpsiCand.M() > 2 && jpsiCand.M()<4 ) { 
@@ -704,13 +698,13 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
           }
           // For D0,
           if ( pidMul == -67731) {
-            TLorentzVector d0Cand = tracks[firstTrack]->P4()+tracks[secondTrack]->P4();
+            TLorentzVector d0Cand = TracktoTLV(tracks[firstTrack])+TracktoTLV(tracks[secondTrack]);
             if ( d0Cand.M()>1.6 && d0Cand.M()<2.2) {
               for( unsigned int pionTrack = 0 ; pionTrack < tracks.size() ; pionTrack++) {
                 if ( firstTrack == pionTrack ) continue;
                 if ( secondTrack == pionTrack ) continue;
                 if ( !flag_dstar && (tracks[pionTrack]->PID * tracks[firstTrack]->PID == 44521 || tracks[pionTrack]->PID*tracks[secondTrack]->PID == 44521 )) {
-                  auto dstarCand = d0Cand+ tracks[pionTrack]->P4();
+                  auto dstarCand = d0Cand+ TracktoTLV(tracks[pionTrack]);
                   float diffMass = dstarCand.M() - d0Cand.M(); 
                   if ( diffMass> 0.135 && diffMass<0.170 ) {
                     if ( !flag_d0 ) nD0++;
