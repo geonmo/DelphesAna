@@ -662,7 +662,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
     // Least POG Numbers, // Simple event Selection.
     //D( std::cout<<"This is dilepton events!"<<std::endl; )
     std::vector<QLV> selLepton = selectedLepton( branchMuon, branchElectron);
-    if ( selLepton.size()<2  || selLepton[0].first*selLepton[1].first > 0  ) continue;
+    if ( selLepton.size()<2  || selLepton[0].first*selLepton[1].first > 0 || (selLepton[0].second+selLepton[1].second).M()<20  ) continue;
     //std::cout<<"Pass Lepton cut"<<std::endl;
     nevt->Fill(3);
     if ( ((selLepton[0].second+selLepton[1].second).mass()-91.)<15) continue;
@@ -721,7 +721,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
             TLorentzVector secondTrackLV = TracktoTLV(tracks[secondTrack]);
 
             TLorentzVector jpsiCand = firstTrackLV+secondTrackLV;
-            if ( jpsiCand.M()>2.5 && jpsiCand.M()<3.5) {
+            if ( jpsiCand.M()>2 && jpsiCand.M()<4) {
               ofc.GetTH1("jpsi_mass")->Fill( jpsiCand.M());
               jpsi = new SecVtx( tracks[firstTrack], tracks[secondTrack]);
               jpsi->setDRPT( dc, branchParticle, 443);
@@ -738,7 +738,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
               if ( firstTrack == pionTrack ) continue;
               if ( secondTrack == pionTrack ) continue;
               if ( !flag_dstar && (tracks[pionTrack]->PID * tracks[firstTrack]->PID == 44521 || tracks[pionTrack]->PID*tracks[secondTrack]->PID == 44521 )) {
-                if ( d0Cand.M() < 1.7 || d0Cand.M()>2.0 ) continue;
+                if ( d0Cand.M() < 1 || d0Cand.M()>3 ) continue;
                 if ( !flag_d0) {
                   nD0++;
                   d0 = new SecVtx( tracks[firstTrack], tracks[secondTrack]);
@@ -765,7 +765,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
             }
             // If D0 is found first, it will be kept.
             if ( (!flag_d0)  ) {
-              if ( d0Cand.M() > 1.7 && d0Cand.M()<2.0 ) {
+              if ( d0Cand.M() > 1 && d0Cand.M()<3 ) {
                 d0 = new SecVtx( tracks[firstTrack], tracks[secondTrack]);
                 d0->setDRPT( dc, branchParticle, 421); 
                 d0->setSoftLepton(nLep); 
