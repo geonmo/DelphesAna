@@ -65,3 +65,31 @@ TMASS4=`ls -td TT_mass_1785*/ | head -n 1 | cut -d'/' -f1`
 cd ${TMASS4}
 condor_submit run.jdl
 cd ..
+
+echo "Now waiting next job for WJets"
+~/bin/submitCondor -o WJets -f filelist_WJets.txt $1
+WJETS=`ls -td WJets*/ | head -n 1 | cut -d'/' -f1`  
+cd ${WJETS}
+condor_submit run.jdl
+cd ..
+
+echo "Now waiting next job for WW"
+~/bin/submitCondor -o WW -f filelist_WW.txt $1
+WW=`ls -td WW*/ | head -n 1 | cut -d'/' -f1`  
+cd ${WW}
+condor_submit run.jdl
+cd ..
+
+echo "Now waiting next job for WZ"
+~/bin/submitCondor -o WZ -f filelist_WZ.txt $1
+WZ=`ls -td WZ*/ | head -n 1 | cut -d'/' -f1`  
+cd ${WZ}
+condor_submit run.jdl
+cd ..
+
+echo "Now waiting next job for ZZ"
+~/bin/submitCondor -o ZZ -f filelist_ZZ.txt $1
+ZZ=`ls -td ZZ*/ | head -n 1 | cut -d'/' -f1`  
+cd ${ZZ}
+condor_submit run.jdl
+cd ..
