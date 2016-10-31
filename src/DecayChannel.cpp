@@ -111,6 +111,40 @@ int DecayChannel::SearchParticle(TClonesArray* genParticles, int pid, TLorentzVe
   } 
   return particle_idx;
 }
+GenParticle* DecayChannel::SearchParticleRef(TClonesArray* genParticles, int pid, TLorentzVector cand) {
+  float dR = 999.f;
+  float delPt = 1.0f;
+  int particle_idx = -1;
+  bool found = false;
+  for( int i=0 ; i< genParticles->GetEntriesFast(); i++) {
+    GenParticle* gen = (GenParticle*)genParticles->At(i);
+    if ( gen->PID != pid) continue;
+    int top_idx = isFromTop(genParticles, i);
+    int b_idx = isFromB(genParticles, i);
+    if ( top_idx ==-1 || b_idx == -1 ) continue;
+
+    float dR_current = gen->P4().DeltaR( cand );
+    float delPt_current = abs(gen->PT-cand.Pt())/gen->PT;
+    if ( dR_current<dR && delPt_current< delPt ) { dR = dR_current; delPt = delPt_current; particle_idx = i; }
+  } 
+  return (GenParticle*) genParticles->At(particle_idx);
+}
+float DecayChannel::VertexDistance(TClonesArray* genParticles, GenParticle* gen, Track* cand) {
+  float dR3D = 999.f;
+  int particle_idx = -1;
+  bool found = false;
+
+  TVector3 genV3( gen->X, gen->Y, gen->Z);
+  TVector3 candV3(cand->X, cand->Y, cand->Z);
+  if ( candV3.Mag() ==0 ) {
+    int candMotherIdx = ((GenParticle*)cand->Particle.GetObject())->M1;
+    if ( candMotherIdx !=-1 ) {
+      GenParticle* candMother = (GenParticle*)genParticles->At( candMotherIdx );
+      candV3.SetXYZ( candMother->X, candMother->Y, candMother->Z);
+    }
+  }
+  return genV3.DeltaR(candV3);
+}
 
 int DecayChannel::FindWboson(TClonesArray* genParticles, int baseIdx )
 {
