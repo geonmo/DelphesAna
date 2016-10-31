@@ -26,7 +26,7 @@ int DecayChannel::isFromTop(TClonesArray* genParticles, int baseIdx ) {
   if ( absPID == 6 ) return baseIdx;
 
   // First, M1
-  if ( base->M1 !=-1 ) {
+  if ( base->M1 >=0  ) {
     int nextResult = isFromTop( genParticles, base->M1 );
     if ( nextResult !=-1 ) return nextResult;
   }
@@ -39,7 +39,7 @@ int DecayChannel::isFromB(TClonesArray* genParticles, int baseIdx ) {
   if ( absPID == 5 ) return baseIdx;
 
   // First, M1
-  if ( base->M1 !=-1 ) {
+  if ( base->M1 >= 0 ) {
     int nextResult = isFromTop( genParticles, base->M1 );
     if ( nextResult !=-1 ) return nextResult;
   }
@@ -126,23 +126,25 @@ GenParticle* DecayChannel::SearchParticleRef(TClonesArray* genParticles, int pid
     float dR_current = gen->P4().DeltaR( cand );
     float delPt_current = abs(gen->PT-cand.Pt())/gen->PT;
     if ( dR_current<dR && delPt_current< delPt ) { dR = dR_current; delPt = delPt_current; particle_idx = i; }
-  } 
-  return (GenParticle*) genParticles->At(particle_idx);
+  }
+  if ( particle_idx != -1) return (GenParticle*) genParticles->At(particle_idx);
+  else return nullptr;
 }
 float DecayChannel::VertexDistance(TClonesArray* genParticles, GenParticle* gen, Track* cand) {
-  float dR3D = 999.f;
-  int particle_idx = -1;
-  bool found = false;
 
+  if ( gen == nullptr || cand == nullptr) return 999.f;
   TVector3 genV3( gen->X, gen->Y, gen->Z);
   TVector3 candV3(cand->X, cand->Y, cand->Z);
+  GenParticle* candMother=nullptr;
+  int candMotherIdx = ((GenParticle*)cand->Particle.GetObject())->M1;
+  if ( candMotherIdx >= 0 ) candMother = (GenParticle*)genParticles->At( candMotherIdx );
   if ( candV3.Mag() ==0 ) {
-    int candMotherIdx = ((GenParticle*)cand->Particle.GetObject())->M1;
-    if ( candMotherIdx !=-1 ) {
-      GenParticle* candMother = (GenParticle*)genParticles->At( candMotherIdx );
-      candV3.SetXYZ( candMother->X, candMother->Y, candMother->Z);
-    }
+    candV3.SetXYZ( candMother->X, candMother->Y, candMother->Z);
   }
+ 
+  D(cout << "    Track pt: " <<    cand->PT << ", eta: " <<    cand->Eta << ", phi: " <<    cand->Phi << " , mass: "<<cand->P4().M()<<" ,PID: "<<   cand->PID<<endl;)
+  D(cout << "    Gen   pt: " << gen->PT << ", eta: " << gen->Eta << ", phi: " << gen->Phi << " , mass: "<<gen->Mass<<" , PID: "<<gen->PID<<endl;)
+  D(if ( candMotherIdx>= 0 ) cout << "    Mother  pt: " << candMother->PT << ", eta: " << candMother->Eta << ", phi: " << candMother->Phi << " , mass: "<<candMother->Mass<<" , PID: "<<candMother->PID<<endl;)
   return genV3.DeltaR(candV3);
 }
 

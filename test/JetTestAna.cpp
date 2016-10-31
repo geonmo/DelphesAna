@@ -161,6 +161,11 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
           if ( !notice ) { std::cout<<"Jet Index : "<<i<<" Jet pT:"<<jet->PT<<"  Jet Eta "<<jet->Eta<<"  Jet Phi "<<jet->Phi<<std::endl; notice = true; }
           cout << "    Track pt: " <<    track->PT << ", eta: " <<    track->Eta << ", phi: " <<    track->Phi << " , mass: "<<track->P4().M()<<" ,PID: "<<   track->PID<<" ,  GenPID: "<<genPID<<endl;
           cout << "    Gen   pt: " << trackGen->PT << ", eta: " << trackGen->Eta << ", phi: " << trackGen->Phi << " , mass: "<<trackGen->Mass<<" , PID: "<<trackGen->PID<<" ,  GenPID: "<<genPID<<endl;
+          if ( trackGen->M1 >=0 ) {
+            cout<< "     Mother   idx : "<<trackGen->M1;
+            GenParticle* mother = (GenParticle*)branchParticle->At( trackGen->M1 );
+            cout <<"  pt: " << mother->PT << ", eta: " << mother->Eta << ", phi: " << mother->Phi << " , mass: "<<mother->Mass<<" , PID: "<<mother->PID<<endl;
+          }
         }
         /*
         else if(object->IsA() == Tower::Class())

@@ -77,23 +77,31 @@ class SecVtx  {
       daus_[1] = trackB_TLV;
 
       if ( branchParticle != nullptr) {
+        GenParticle* trackAmother=nullptr, *trackBmother=nullptr;
         auto trackA_GEN = (GenParticle*)trackA->Particle.GetObject();
-        GenParticle* trackAmother = (GenParticle*)branchParticle->At(trackA_GEN->M1);
+        if ( trackA_GEN->M1>=0 ) trackAmother = (GenParticle*)branchParticle->At(trackA_GEN->M1);
         auto trackB_GEN = (GenParticle*)trackB->Particle.GetObject();
-        GenParticle* trackBmother = (GenParticle*)branchParticle->At(trackB_GEN->M1);
-        vx_[0] = trackAmother->X;
-        vx_[1] = trackBmother->X;
-        vy_[0] = trackAmother->Y;
-        vy_[1] = trackBmother->Y;
-        vz_[0] = trackAmother->Z;
-        vz_[1] = trackBmother->Z;
-      }
-      nDau_ = 2;
+        if ( trackB_GEN->M1>=0 ) trackBmother = (GenParticle*)branchParticle->At(trackB_GEN->M1);
+  
+        if( trackAmother != nullptr ) {
+          vx_[0] = trackAmother->X;
+          vy_[0] = trackAmother->Y;
+          vz_[0] = trackAmother->Z;
+        }
+        else {  vx_[0] =0 ; vy_[0] = 0; vz_[0] = 0; }
+        if( trackBmother != nullptr ) {
+          vx_[1] = trackBmother->X;
+          vy_[1] = trackBmother->Y;
+          vz_[1] = trackBmother->Z;
+        }
+        else {  vx_[1] =0 ; vy_[1] = 0; vz_[1] = 0; }
+    }
+    nDau_ = 2;
       isFromTop_= 0;
     }
     SecVtx(SecVtx* secvtxA, Track* trackB, TClonesArray* branchParticle=nullptr, float dau1_V3D=1000.0f, float dau2_V3D=1000.0f, float dau3_V3D=1000.0f) {
       float track2_mass = 0;
-      auto trackB_TLV = TracktoTLV(trackB);
+      auto trackB_TLV = TracktoTLV(trackB,211);
       pos_ = secvtxA->P4() + trackB_TLV;
       charge_ = trackB->PID/abs(trackB->PID);
       dau_pid_[0] = secvtxA->dau_pid(0);
@@ -114,10 +122,13 @@ class SecVtx  {
         vz_[0] = secvtxA->vz(0);
         vz_[1] = secvtxA->vz(1);
         auto trackB_GEN = (GenParticle*)trackB->Particle.GetObject();
-        GenParticle* trackBmother = (GenParticle*)branchParticle->At(trackB_GEN->M1);
-        vx_[2] = trackBmother->X;
-        vy_[2] = trackBmother->Y;
-        vz_[2] = trackBmother->Z;
+        GenParticle* trackBmother = nullptr;
+        if ( trackB_GEN->M1>=0 ) trackBmother = (GenParticle*) branchParticle->At(trackB_GEN->M1);
+        if ( trackBmother !=nullptr) {
+          vx_[2] = trackBmother->X;
+          vy_[2] = trackBmother->Y;
+          vz_[2] = trackBmother->Z;
+        }
       }
       nDau_ = 3;
       isFromTop_= 0;
@@ -241,7 +252,7 @@ class SecVtx  {
       if ( isFromTopIdx != -1 ) isFromTop_ = ((GenParticle*)branchParticle->At( isFromTopIdx))->PID;
       auto gen = (GenParticle*)branchParticle->At( mcTruth );
       dRTrue_ = gen->P4().DeltaR( pos_ );
-      delPtTrue_ = abs(gen->PT-pos_.Pt())/gen->PT;
+      delPtTrue_ = 1-abs(gen->PT-pos_.Pt())/gen->PT;
 
     }
     void setSoftLepton(int nLep) {nLep_ = nLep;}
@@ -326,16 +337,15 @@ class saveData {
     Float_t lsv_pt[2], lsv_eta[2], lsv_phi[2], lsv_mass[2],lsv_diffmass[2], lsv_d0mass[2];
 
     void reset() {
-      //dataType=0;
       sv_pid = 0 ;
       sv_charge =0; 
       sv_isFromTop=-9; 
-      sv_pt = -9.0; 
-      sv_eta = -9.0; 
-      sv_phi = -9.0; 
-      sv_mass = -9.0;
-      sv_diffmass = -9.0;
-      sv_d0mass = -9.0;
+      sv_pt = -9.0f; 
+      sv_eta = -9.0f; 
+      sv_phi = -9.0f; 
+      sv_mass = -9.0f;
+      sv_diffmass = -9.0f;
+      sv_d0mass = -9.0f;
       sv_vx = 0.f;
       sv_vy = 0.f;
       sv_vz = 0.f;
@@ -350,29 +360,29 @@ class saveData {
 
       for( int idx = 0; idx< 3 ; idx++) { 
         sv_dau_pid[idx] =0;  
-        sv_dau_pt[idx] = -9.0; 
-        sv_dau_eta[idx] = -9.0; 
-        sv_dau_phi[idx] = -9.0; 
-        sv_dau_mass[idx] = -9.0; 
-        sv_dau_v3d[idx] = 999.0; 
+        sv_dau_pt[idx] = -9.0f; 
+        sv_dau_eta[idx] = -9.0f; 
+        sv_dau_phi[idx] = -9.0f; 
+        sv_dau_mass[idx] = -9.0f; 
+        sv_dau_v3d[idx] = 999.0f; 
       }
       for( int idx = 0; idx< 2 ; idx++) { 
 
         lep_charge[idx] =0;  
         lep_pid[idx] =0 ;
-        lep_pt[idx] = -9.0; 
-        lep_eta[idx] = -9.0; 
-        lep_phi[idx] = -9.0; 
-        lep_mass[idx] = -9.0; 
+        lep_pt[idx] = -9.0f; 
+        lep_eta[idx] = -9.0f; 
+        lep_phi[idx] = -9.0f; 
+        lep_mass[idx] = -9.0f; 
 
 
         lsv_pid[idx] = 0;
-        lsv_pt[idx] = -9.0;
-        lsv_eta[idx] = -9.0;
-        lsv_phi[idx] = -9.0;
-        lsv_mass[idx] = -9.0;
-        lsv_diffmass[idx] = 0.0;
-        lsv_d0mass[idx] = -9.0;
+        lsv_pt[idx] = -9.0f;
+        lsv_eta[idx] = -9.0f;
+        lsv_phi[idx] = -9.0f;
+        lsv_mass[idx] = -9.0f;
+        lsv_diffmass[idx] = 0.0f;
+        lsv_d0mass[idx] = -9.0f;
 
       }
     }
@@ -426,7 +436,6 @@ class saveData {
 
       for ( int idx =0 ; idx<svx->nDau() ; idx++) {
         sv_dau_pid[idx]   = svx->dau_pid(idx);
-        std::cout<<"Daughter's pid : "<<sv_dau_pid[idx]<<std::endl;
         sv_dau_pt[idx]   = svx->dau(idx).Pt();
         sv_dau_eta[idx]  = svx->dau(idx).Eta();
         sv_dau_phi[idx]  = svx->dau(idx).Phi();
@@ -440,7 +449,6 @@ class saveData {
       lep_eta[0] = lep1->eta();
       lep_phi[0] = lep1->phi();
       lep_mass[0] = lep1->mass();
-      std::cout<<"lep_mass[0] : "<<lep_mass[0]<<std::endl;
 
       lep_charge[1] = -lep2_pid/abs(lep2_pid);
       lep_pid[1] = lep2_pid;
@@ -683,12 +691,14 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
             if ( jpsiCand.M()>2 && jpsiCand.M()<4 ) {
               jpsi[jet_idx] = new SecVtx( tracks[firstTrack], tracks[secondTrack], branchParticle);
               jpsi[jet_idx]->setDRPT( dc, branchParticle, 443);
-              ofc.data.init(&selLepton[0], &selLepton[1], jpsi[jet_idx]);
-              ofc.GetTree("tree")->Fill(); 
+              jpsi[jet_idx]->setSoftLepton(0);
+              jpsi[jet_idx]->setD0mass( -9.0f ); 
               flag_jpsi[jet_idx] = true;
-              ofc.GetTH1("jpsi_mass")->Fill( jpsiCand.M());
               std::cout<<"jpsi"<<std::endl;
-              if ( abs( 3.09-jpsiCand.M())< jpsi_massWindow) nJpsi++;
+              //ofc.data.init(&selLepton[0], &selLepton[1], jpsi[jet_idx]);
+              //ofc.GetTree("tree")->Fill(); 
+              //ofc.GetTH1("jpsi_mass")->Fill( jpsiCand.M());
+              //if ( abs( 3.09-jpsiCand.M())< jpsi_massWindow) nJpsi++;
             }
           }
         }
@@ -732,32 +742,27 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
           if ( isD0 )    recoPID =  421;
           else           recoPID = -421;
 
-          auto d0Cand = TracktoTLV(tracks[firstTrack])+TracktoTLV(tracks[secondTrack]);
+          auto d0Cand = TracktoTLV(tracks[firstTrack],321)+TracktoTLV(tracks[secondTrack],211);
           if ( d0Cand.M() < 1 || d0Cand.M()>3 ) continue;
           GenParticle* genD0 = dc.SearchParticleRef(branchParticle, recoPID, d0Cand);
 
-          float track1DX = dc.VertexDistance( branchParticle, genD0, tracks[firstTrack]);
-          float track1DY = dc.VertexDistance( branchParticle, genD0, tracks[firstTrack]);
-          float track1DZ = dc.VertexDistance( branchParticle, genD0, tracks[firstTrack]);
-          TVector3 track1V3(track1DX, track1DY, track1DZ);
+          float track1_v3D = dc.VertexDistance( branchParticle, genD0, tracks[firstTrack]);
 
-          float track2DX = dc.VertexDistance( branchParticle, genD0, tracks[secondTrack]);
-          float track2DY = dc.VertexDistance( branchParticle, genD0, tracks[secondTrack]);
-          float track2DZ = dc.VertexDistance( branchParticle, genD0, tracks[secondTrack]);
-          TVector3 track2V3(track2DX, track2DY, track2DZ);
-          if ( track1V3.Mag()> track_margin || track2V3.Mag()> track_margin) continue;
+          float track2_v3D = dc.VertexDistance( branchParticle, genD0, tracks[secondTrack]);
+          if ( track1_v3D > track_margin || track2_v3D > track_margin) continue;
 
           if ( !flag_d0[jet_idx]) { 
-            d0[jet_idx] = new SecVtx( tracks[firstTrack], tracks[secondTrack], branchParticle, track1V3.Mag(), track2V3.Mag() );
+            d0[jet_idx] = new SecVtx( tracks[firstTrack], tracks[secondTrack], branchParticle, track1_v3D, track2_v3D );
             d0[jet_idx]->setDRPT( dc, branchParticle, recoPID); 
             d0[jet_idx]->setSoftLepton(nsoftlep);
-
-            ofc.data.init(&selLepton[0], &selLepton[1], d0[jet_idx]);
-            ofc.GetTree("tree")->Fill(); 
+            d0[jet_idx]->setD0mass( d0Cand.M() ); 
             flag_d0[jet_idx] = true;
-            nD0++;
-            ofc.GetTH1("d0_mass")->Fill( d0Cand.M());
             std::cout<<"D0"<<std::endl;
+
+            //ofc.data.init(&selLepton[0], &selLepton[1], d0[jet_idx]);
+            //ofc.GetTree("tree")->Fill(); 
+            //nD0++;
+            //ofc.GetTH1("d0_mass")->Fill( d0Cand.M());
           }
           if ( abs( d0Cand.M() - 1.864 ) > d0_massWindow ) continue;
           std::cout<<"dstar cand"<<std::endl; 
@@ -768,35 +773,57 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
               auto dstarCand = d0Cand+ TracktoTLV(tracks[pionTrack]);
               float diffMass = dstarCand.M() - d0Cand.M(); 
               if ( diffMass > 0.135 && diffMass<0.170) {
-                dstar[jet_idx] = new SecVtx( d0[jet_idx], tracks[pionTrack], branchParticle, track1V3.Mag(), track2V3.Mag(), dc.VertexDistance( branchParticle, genD0, tracks[pionTrack]) );
+                dstar[jet_idx] = new SecVtx( d0[jet_idx], tracks[pionTrack], branchParticle, track1_v3D, track2_v3D, dc.VertexDistance( branchParticle, genD0, tracks[pionTrack]) );
                 dstar[jet_idx]->setDRPT( dc, branchParticle, 413*dstar[jet_idx]->charge() ); 
                 dstar[jet_idx]->setSoftLepton(nsoftlep);
                 dstar[jet_idx]->setD0mass( d0Cand.M()); 
-                ofc.GetTH1("dstar_mass")->Fill( dstarCand.M());
-                ofc.GetTH1("dstar_diffmass")->Fill( dstarCand.M()- d0Cand.M());
                 flag_dstar[jet_idx] = true;
                 std::cout<<"D*"<<std::endl;
-                nDstar++;
-                ofc.data.init(&selLepton[0], &selLepton[1], dstar[jet_idx]);
-                ofc.GetTree("tree")->Fill(); 
+                //ofc.GetTH1("dstar_mass")->Fill( dstarCand.M());
+                //ofc.GetTH1("dstar_diffmass")->Fill( dstarCand.M()- d0Cand.M());
+                //nDstar++;
+                //ofc.data.init(&selLepton[0], &selLepton[1], dstar[jet_idx]);
+                //ofc.GetTree("tree")->Fill(); 
               }
             } 
           }
         }
       }
     }
-    int cat = 0; 
-    if ( flag_jpsi ) {
-      cat = 2;
+    // For each hemisphere, 
+    for(int i=0 ; i<2 ; i++) { 
+      int cat = 0; 
+      if ( flag_jpsi[i] ) {
+        ofc.GetTH1("jpsi_mass")->Fill( jpsi[i]->mass() );
+        ofc.data.init(&selLepton[0], &selLepton[1], jpsi[i]);
+        ofc.GetTree("tree")->Fill(); 
+        if ( abs( 3.09-jpsi[i]->mass())< jpsi_massWindow) { 
+          nJpsi++;
+          cat = 2;
+        }
+      }
+      else if ( flag_dstar[i]) {
+        ofc.GetTH1("dstar_mass")->Fill( dstar[i]->mass() );
+        ofc.GetTH1("dstar_diffmass")->Fill( dstar[i]->diffmass() );
+        ofc.data.init(&selLepton[0], &selLepton[1], dstar[i]);
+        ofc.GetTree("tree")->Fill(); 
+        if ( abs( 0.145-dstar[i]->diffmass())< dstar_massWindow ) {
+          nDstar++;
+          cat = 3;
+        } 
+      }
+      else if ( flag_d0[i]) {
+        ofc.GetTH1("d0_mass")->Fill( d0[i]->mass() );
+        ofc.data.init(&selLepton[0], &selLepton[1], d0[i]);
+        ofc.GetTree("tree")->Fill();
+        if ( abs( 1.864-d0[i]->mass())< d0_massWindow ) {
+          nD0++;
+          cat = 4;
+        } 
+      }
+      else cat = 1; 
+      ofc.GetTH1("sv_category")->Fill(cat);
     }
-    else if ( flag_dstar) {
-      cat = 3; 
-    }
-    else if ( flag_d0) {
-      cat = 4; 
-    }
-    else cat = 1; 
-    ofc.GetTH1("sv_category")->Fill(cat);
   }        
   std::cout<<TString::Format("Filling! nJpsi: %d , nD0 : %d, nDstar : %d\n",nJpsi,nD0, nDstar)<<std::endl;
 }
@@ -885,7 +912,7 @@ int main(int argc, char* argv[])
   // Lepton
   brC += "lep_charge[2]/I:lep_pid[2]/I:lep_pt[2]/F:lep_eta[2]/F:lep_phi[2]/F:lep_mass[2]/F:";
   // SV
-  brC += "sv_pid/I:sv_charge/I:sv_isFromTop/I:sv_pt/F:sv_eta/F:sv_phi/F:sv_mass/F:sv_diffmass/F:sv_d0mass/F:sv_vx/F:sv_vy/F:sv_vz/F:sv_dx/F:sv_dy/F:sv_dz/F:sv_L3D/F:sv_LXY/F:sv_softlep/I:sv_dRTrue/F:sv_delPtTrue/F:sv_dau_pid[3]/I:sv_dau_pt[3]/F:sv_dau_eta[3]/F:sv_dau_phi[3]/F:sv_dau_mass[3]/F";
+  brC += "sv_pid/I:sv_charge/I:sv_isFromTop/I:sv_pt/F:sv_eta/F:sv_phi/F:sv_mass/F:sv_diffmass/F:sv_d0mass/F:sv_vx/F:sv_vy/F:sv_vz/F:sv_dx/F:sv_dy/F:sv_dz/F:sv_L3D/F:sv_LXY/F:sv_softlep/I:sv_dRTrue/F:sv_delPtTrue/F:sv_dau_pid[3]/I:sv_dau_pt[3]/F:sv_dau_eta[3]/F:sv_dau_phi[3]/F:sv_dau_mass[3]/F:sv_dau_v3d[3]/F";
   // lSV
   TString brC2 = TString("");
   brC2 += "lsv_pid[2]/I:lsv_pt[2]/F:lsv_eta[2]/F:lsv_phi[2]/F:lsv_mass[2]/F:lsv_diffmass[2]/F:lsv_d0mass[2]/F";
