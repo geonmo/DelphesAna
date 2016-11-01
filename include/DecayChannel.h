@@ -20,6 +20,7 @@ class DecayChannel {
     GenParticle* SearchParticleRef(TClonesArray* genParticles, int pid, TLorentzVector cand);
     GenParticle* SearchParticleRef(TClonesArray* genParticles, int pid, Track* cand) { return SearchParticleRef(genParticles, pid, cand->P4());}
     float VertexDistance(TClonesArray* , GenParticle* gen, Track* cand);
+    float VertexDistance(TClonesArray* , Track* cand1, Track* cand2);
     int FindWboson(TClonesArray* , int baseIdx );
     int FindLepton(TClonesArray* , int baseIdx );
     int channelSelection(TClonesArray*  ); 

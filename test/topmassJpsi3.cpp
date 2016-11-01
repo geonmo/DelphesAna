@@ -40,7 +40,6 @@ TLorentzVector TracktoTLV( Track* track, int assumePID=0 ) {
   TLV track_TLV = track->P4();
   double track_mass =0.;
   if      ( abs(track->PID)==11)  track_mass = 0.000511169;
-  else if ( abs(track->PID)==13)  track_mass = 0.105652;
   else {
     if ( abs( assumePID)==211 ) track_mass = 0.139526;
     else if ( abs( assumePID)==321) track_mass = 0.493652;
@@ -58,7 +57,7 @@ class SecVtx  {
       init();
       nDau_=0;
     }
-    SecVtx(Track* trackA, Track* trackB, TClonesArray* branchParticle=nullptr, float dau1_V3D=0.0f, float dau2_V3D=0.0f){
+    SecVtx(Track* trackA, Track* trackB, TClonesArray* branchParticle=nullptr, float dau1_V3D=1000.0f, float dau2_V3D=1000.0f){
       init();
       float track1_mass = 0, track2_mass = 0;
 
@@ -326,6 +325,20 @@ std::pair< TLV, TLV> lsvPairing( QLV* lep1 , QLV* lep2, SecVtx* sv) {
   lsv1 = common::LVtoTLV(lep1_LV+common::TLVtoLV(sv->P4()));
   lsv2 = common::LVtoTLV(lep2_LV+common::TLVtoLV(sv->P4()));
 
+  if ( abs(lsv1.Eta()) > 1e5) {
+    D( 
+    std::cout<<sv->pid()<<std::endl;
+    std::cout<<"lep1 pt: "<<lep1_LV.pt()<<" eta: "<<lep1_LV.eta()<<"  phi: "<<lep1_LV.phi()<<" mass: "<<lep1_LV.mass()<<std::endl;
+    std::cout<<"sv pt: "<<sv->pt()<<" eta: "<<sv->eta()<<"  phi: "<<sv->phi()<<" mass: "<<sv->mass()<<std::endl;
+    )
+  }
+  if ( abs(lsv2.Eta()) > 1e5) {
+    D(
+    std::cout<<sv->pid()<<std::endl;
+    std::cout<<"lep2 pt: "<<lep2_LV.pt()<<" eta: "<<lep2_LV.eta()<<"  phi: "<<lep2_LV.phi()<<" mass: "<<lep2_LV.mass()<<std::endl;
+    std::cout<<"sv pt: "<<sv->pt()<<" eta: "<<sv->eta()<<"  phi: "<<sv->phi()<<" mass: "<<sv->mass()<<std::endl;
+    )
+  }
   /*
   if ( sv->isFromTop() == 6) {
     // top to positron
@@ -488,7 +501,7 @@ class saveData {
       lep_phi[1] = lep2->phi();
       lep_mass[1] = lep2->mass();
 
-      fillLSV(&lep1_QLV[0], &lep2_QLV[1], svx);
+      fillLSV(lep1_QLV, lep2_QLV, svx);
     }
 };
 
@@ -704,10 +717,16 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
       }
       D(std::cout<<std::endl;)
 
+      unsigned int best_lep1Track = -1, best_lep2Track = -1;
+      float best_jpsi_mass = -9.f;
+
+      unsigned int best_kaonTrack = -1, best_pionTrack = -1, best_pion2Track = -1;
+      float best_d0_mass = -9.f, best_dstar_diffmass = -9.f;
+
+
       if ( tracks.size() <2 ) continue;
       for( unsigned int firstTrack = 0 ; firstTrack< tracks.size()-1 ; firstTrack++) {
         for( unsigned int secondTrack = firstTrack+1 ; secondTrack< tracks.size() ; secondTrack++) {
-          if ( flag_jpsi[jet_idx] ) continue;
           int pid1 = tracks[firstTrack]->PID;
           int pid2 = tracks[secondTrack]->PID;
 
@@ -719,8 +738,10 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
             TLorentzVector secondTrackLV = TracktoTLV(tracks[secondTrack]);
 
             TLorentzVector jpsiCand = firstTrackLV+secondTrackLV;
-            if ( jpsiCand.M()>2 && jpsiCand.M()<4 ) {
-              jpsi[jet_idx] = new SecVtx( tracks[firstTrack], tracks[secondTrack], branchParticle);
+            if ( jpsiCand.M()>2 && jpsiCand.M()<4  &&  abs(3.096-jpsiCand.M())<abs(3.096-best_jpsi_mass) ) {
+              best_lep1Track = firstTrack; best_lep2Track = secondTrack ; best_jpsi_mass = jpsiCand.M();
+              float track1_v3D = dc.VertexDistance( branchParticle, tracks[firstTrack], tracks[secondTrack]);
+              jpsi[jet_idx] = new SecVtx( tracks[firstTrack], tracks[secondTrack], branchParticle, track1_v3D);
               jpsi[jet_idx]->setDRPT( dc, branchParticle, 443);
               jpsi[jet_idx]->setSoftLepton(0);
               jpsi[jet_idx]->setSoftaLepton(0);
@@ -735,56 +756,55 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
           }
         }
       }
+      if ( flag_jpsi[jet_idx] ) continue;    // Jet Loop is over if jpsi is found.
       if ( tracks.size() <3 ) continue;
-      //For D0 category, 
+      // Third Track for soft lepton( e-, mu- ) ,
+     
+      // SoftLepton part, 
+      int nsoftlep = 0, nsoftalep = 0;
+      bool isD0 = false;
+      for( unsigned int softleptonTrack = 0 ; softleptonTrack < tracks.size() ; softleptonTrack++) {
+        // If D0 + l^-    -> kaon- pion+ l-
+        if ( (tracks[softleptonTrack]->PID == 11 || tracks[softleptonTrack]->PID ==13) )   { nsoftlep++;  isD0    = true ; break; } // D0,
+        // If D0bar + l^+ -> kaon+ pion- l^+,
+        if ( (tracks[softleptonTrack]->PID == -11 || tracks[softleptonTrack]->PID ==-13) ) { nsoftalep++; isD0    = false; break; } // D0bar,
+      }
+      // Soft lepton check.
+      if ( nsoftlep+nsoftalep ==0 ) continue; 
+
+      // Now, this jet has a D0 or D0bar.
+      // For D0 category, 
       // Assume, firstTrack = Kaon and secondTrack = pion.
+      //
       for( unsigned int firstTrack = 0 ; firstTrack< tracks.size() ; firstTrack++) {
         for( unsigned int secondTrack = 0 ; secondTrack< tracks.size() ; secondTrack++) {
           if ( firstTrack == secondTrack ) continue;
-          int track1Charge = tracks[firstTrack]->Charge;
-          int track2Charge = tracks[secondTrack]->Charge;
-          if ( track1Charge*track2Charge >0 )  continue;
-
-          int track1PID = tracks[firstTrack]->PID;
-          int track2PID = tracks[secondTrack]->PID;
+          
           // Lepton track must be skipped!
+          int track1PID = abs(tracks[firstTrack]->PID);
+          int track2PID = abs(tracks[secondTrack]->PID);
           if (track1PID == 13 || track1PID==11 || track2PID==13 || track2PID==11  ) continue;
 
-          int nsoftlep = 0, nsoftalep = 0;
-          bool hasD0bar = false;
-          bool hasD0 = false;
-          // Third Track for soft lepton( e-, mu- ) ,
-          for( unsigned int softleptonTrack = 0 ; softleptonTrack < tracks.size() ; softleptonTrack++) {
-            if ( firstTrack == softleptonTrack ) continue;
-            if ( secondTrack == softleptonTrack ) continue;
+          int track1Charge = tracks[firstTrack]->Charge;  // kaon charge
+          int track2Charge = tracks[secondTrack]->Charge;
+          if (  isD0 && ( track1Charge >0|| track2Charge<0)   ) continue;   // For D0,     kaon(1st Track) must be negative. 
+          if ( !isD0 && ( track1Charge <0|| track2Charge>0)   ) continue;   // For D0bar,  kaon(1st Track) must be positive. 
 
-            // If D0-> kaon- pion+,
-            if ( (tracks[softleptonTrack]->PID == 11 || tracks[softleptonTrack]->PID ==13) )   { nsoftlep++; hasD0    = true; } // D0,
-            // If D0bar-> kaon+ pion-,
-            if ( (tracks[softleptonTrack]->PID == -11 || tracks[softleptonTrack]->PID ==-13) ) { nsoftalep++; hasD0bar = true;  } // D0bar,
-          }
-          if ( nsoftlep+nsoftalep ==0 ) continue; 
-          // Soft lepton check.
-          if ( !hasD0 && track1Charge<0 ) continue;
-          if ( !hasD0bar && track1Charge<0 ) continue;
 
-          // if this pair is D0, first track must has a positive charge.
-          bool isD0 = track1Charge>0 ; // 
           int recoPID;
           if ( isD0 )    recoPID =  421;
           else           recoPID = -421;
 
           auto d0Cand = TracktoTLV(tracks[firstTrack],321)+TracktoTLV(tracks[secondTrack],211);
           if ( d0Cand.M() < 1 || d0Cand.M()>3 ) continue;
-          GenParticle* genD0 = dc.SearchParticleRef(branchParticle, recoPID, d0Cand);
 
-          float track1_v3D = dc.VertexDistance( branchParticle, genD0, tracks[firstTrack]);
 
-          float track2_v3D = dc.VertexDistance( branchParticle, genD0, tracks[secondTrack]);
-          if ( track1_v3D > track_margin || track2_v3D > track_margin) continue;
+          //GenParticle* genD0 = dc.SearchParticleRef(branchParticle, recoPID, d0Cand);
+          float track1_v3D = dc.VertexDistance( branchParticle, tracks[firstTrack], tracks[secondTrack]);
+          if ( track1_v3D > track_margin ) continue;
 
-          if ( !flag_d0[jet_idx]) { 
-            d0[jet_idx] = new SecVtx( tracks[firstTrack], tracks[secondTrack], branchParticle, track1_v3D, track2_v3D );
+          if ( abs(1.864 - d0Cand.M()) < abs(1.864-best_d0_mass)) {
+            d0[jet_idx] = new SecVtx( tracks[firstTrack], tracks[secondTrack], branchParticle, track1_v3D );
             d0[jet_idx]->setDRPT( dc, branchParticle, recoPID); 
             d0[jet_idx]->setSoftLepton(nsoftlep);
             d0[jet_idx]->setSoftaLepton(nsoftalep);
@@ -804,8 +824,12 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
             if ( tracks[pionTrack]->Charge == tracks[secondTrack]->Charge ) {
               auto dstarCand = d0Cand+ TracktoTLV(tracks[pionTrack]);
               float diffMass = dstarCand.M() - d0Cand.M(); 
-              if ( diffMass > 0.135 && diffMass<0.170) {
-                dstar[jet_idx] = new SecVtx( d0[jet_idx], tracks[pionTrack], branchParticle, track1_v3D, track2_v3D, dc.VertexDistance( branchParticle, genD0, tracks[pionTrack]) );
+              if ( diffMass > 0.135 && diffMass<0.170 && abs(0.145-diffMass)<abs(0.145-best_dstar_diffmass)) {
+                float track1_v3D = dc.VertexDistance( branchParticle, tracks[firstTrack],  tracks[secondTrack]);
+                float track2_v3D = dc.VertexDistance( branchParticle, tracks[firstTrack],  tracks[pionTrack]);
+                float track3_v3D = dc.VertexDistance( branchParticle, tracks[secondTrack], tracks[pionTrack]);
+
+                dstar[jet_idx] = new SecVtx( d0[jet_idx], tracks[pionTrack], branchParticle, track1_v3D, track2_v3D, track3_v3D );
                 dstar[jet_idx]->setDRPT( dc, branchParticle, 413*dstar[jet_idx]->charge() ); 
                 dstar[jet_idx]->setSoftLepton(nsoftlep);
                 dstar[jet_idx]->setSoftLepton(nsoftalep);
@@ -925,15 +949,29 @@ void BookingHist(OutFileClass& ofc)
 
 int main(int argc, char* argv[])
 {
-  if ( argc !=3 ) {
+  const char* inputFile ;
+  const char* outputFile;
+
+  TChain *chain = new TChain("Delphes");
+  if ( argc ==1 ) {
+    for( int i=10 ; i<20 ; i++) {
+      TString input = TString::Format("/pnfs/user/geonmo/Delphes_%d.root",i).Data();
+      //inputFile = std::string("Delphes_")+TString::Format("Delphes_%d.root",i).Data();
+      //sprintf(inputFile, "Delphes_%d.root",i);
+      std::cout<<input<<std::endl;
+      chain->Add( input.Data()); 
+    } 
+    outputFile = "result_output.root";
+  }
+  else if ( argc !=3 ) {
     std::cout<<"Argument is wrong. Please, run \"JetCharge Delphes_input.root result_output.root\""<<std::endl;
     return -1;
   }
-  const char* inputFile = argv[1];
-  const char* outputFile = argv[2];
-
-  TChain *chain = new TChain("Delphes");
-  chain->Add(inputFile);
+  else {
+    inputFile = argv[1];
+    outputFile = argv[2];
+    chain->Add(inputFile);
+  }
 
   ExRootTreeReader *treeReader = new ExRootTreeReader(chain);
   TFile* file = TFile::Open(outputFile,"RECREATE"); 

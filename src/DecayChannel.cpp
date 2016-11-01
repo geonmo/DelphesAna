@@ -136,9 +136,9 @@ float DecayChannel::VertexDistance(TClonesArray* genParticles, GenParticle* gen,
   TVector3 genV3( gen->X, gen->Y, gen->Z);
   TVector3 candV3(cand->X, cand->Y, cand->Z);
   GenParticle* candMother=nullptr;
-  int candMotherIdx = ((GenParticle*)cand->Particle.GetObject())->M1;
-  if ( candMotherIdx >= 0 ) candMother = (GenParticle*)genParticles->At( candMotherIdx );
   if ( candV3.Mag() ==0 ) {
+    int candMotherIdx = ((GenParticle*)cand->Particle.GetObject())->M1;
+    if ( candMotherIdx >= 0 ) candMother = (GenParticle*)genParticles->At( candMotherIdx );
     candV3.SetXYZ( candMother->X, candMother->Y, candMother->Z);
   }
  
@@ -146,6 +146,28 @@ float DecayChannel::VertexDistance(TClonesArray* genParticles, GenParticle* gen,
   D(cout << "    Gen   pt: " << gen->PT << ", eta: " << gen->Eta << ", phi: " << gen->Phi << " , mass: "<<gen->Mass<<" , PID: "<<gen->PID<<endl;)
   D(if ( candMotherIdx>= 0 ) cout << "    Mother  pt: " << candMother->PT << ", eta: " << candMother->Eta << ", phi: " << candMother->Phi << " , mass: "<<candMother->Mass<<" , PID: "<<candMother->PID<<endl;)
   return genV3.DeltaR(candV3);
+}
+float DecayChannel::VertexDistance(TClonesArray* genParticles, Track* track1, Track* track2) {
+  TVector3 track1V3( track1->X, track1->Y, track1->Z);
+  TVector3 track2V3( track2->X, track2->Y, track2->Z);
+  GenParticle *track1Mother=nullptr, *track2Mother=nullptr;
+
+  if ( track1V3.Mag() ==0 ) {
+    int track1MotherIdx = ((GenParticle*)track1->Particle.GetObject())->M1;
+    if ( track1MotherIdx >= 0 ) { 
+      track1Mother = (GenParticle*)genParticles->At( track1MotherIdx );
+      track1V3.SetXYZ( track1Mother->X, track1Mother->Y, track1Mother->Z);
+    }
+  }
+  if ( track2V3.Mag() ==0 ) {
+    int track2MotherIdx = ((GenParticle*)track2->Particle.GetObject())->M1;
+    if ( track2MotherIdx >= 0 ) { 
+      track2Mother = (GenParticle*)genParticles->At( track2MotherIdx );
+      track2V3.SetXYZ( track2Mother->X, track2Mother->Y, track2Mother->Z);
+    }
+  }
+ 
+  return track1V3.DeltaR(track2V3);
 }
 
 int DecayChannel::FindWboson(TClonesArray* genParticles, int baseIdx )
