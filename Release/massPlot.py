@@ -9,8 +9,8 @@ datalumi = 100
 CMS_lumi.lumi_sqrtS = "%.1f fb^{-1}, #sqrt{s} = 13 TeV"%(datalumi)
 datalumi = datalumi*1000 # due to fb
 
-#topMassList = ['TT_powheg_mtop1665','TT_powheg_mtop1695','TT_powheg_mtop1755','TT_powheg_mtop1785','TTLL_powheg']
-topMassList = ['TT_powheg_mtop1695','TT_powheg_mtop1755','TTLL_powheg']
+topMassList = ['TT_powheg_mtop1665','TT_powheg_mtop1695','TT_powheg_mtop1755','TT_powheg_mtop1785','TTLL_powheg']
+#topMassList = ['TT_powheg_mtop1695','TT_powheg_mtop1755','TTLL_powheg']
 mcfilelist = ['SingleTbar_tW', 'SingleTop_tW','DYJets', 'DYJets_10to50','WJets','WW','WZ','ZZ']
 rootfileDir = "./tupleOut_"
 #channel_name = ['Combined', 'MuEl', 'ElEl', 'MuMu']
@@ -150,7 +150,7 @@ outMassHist = ROOT.TFile.Open("invMass_%s_%s.root"%(matchingtype,suffix),"RECREA
 lsvHists=[]
 for topMass in topMassList :
   if ( topMass.find("mtop") != -1 ) :  massValue = topMass.split("mtop")[-1]
-  else : massValue = "1725" 
+  else : massValue = "nominal" 
   sum_hs =  hs_bkg.Clone()
   sum_hs.SetTitle("Signal + Bkg.")
   data = findDataSet(topMass, datasets)
@@ -200,14 +200,14 @@ for topMass in topMassList :
   #masshist.Sumw2()
   masshist.Draw()
   print masshist.GetEntries()
-  masshist.SetName("invMass_%s_%s"%(matchingvar, massValue))
+  masshist.SetName("invMass_%s"%(massValue))
   masshist.SetTitle("Invariant mass mtop_%s; M_{%s}  ;Entries/%f"%( massValue, matchingvar, masshist.GetBinWidth(1) ))
   if ( plotvar in ["lsv_mass"] ) :
     lsvHists.append(masshist.Clone())
-  outMassHist.cd()
-  masshist.Write()
-  mchist.SetName("ttbar_mtop%s"%(massValue))
-  mchist.Write()
+    outMassHist.cd()
+    masshist.Write()
+    mchist.SetName("ttbar_mtop%s"%(massValue))
+    mchist.Write()
 
   c1= ROOT.TCanvas("c1","c1")
   """

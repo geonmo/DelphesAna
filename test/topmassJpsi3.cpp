@@ -245,20 +245,51 @@ class SecVtx  {
       }
       else return 0; 
     }
-    void setDRPT(DecayChannel dc, TClonesArray* branchParticle, int pdgId) {
+    void setIsFromTop( DecayChannel& dc, TClonesArray* branchParticle, int mcTruthIdx) {
+      int isFromTop =0;
+      int isFromTopIdx = dc.isFromTop( branchParticle, mcTruthIdx );
+      if ( isFromTopIdx != -1 ) isFromTop_ = ((GenParticle*)branchParticle->At( isFromTopIdx))->PID;
+      else isFromTop_ = isFromTop;
+    }
+    void setDRPT(DecayChannel& dc, TClonesArray* branchParticle, int pdgId) {
       pid_ = pdgId;
-      int mcTruth = dc.SearchParticle(branchParticle, pdgId, pos_ );
-      if ( mcTruth == -1 ) {
+      int mcTruthIdx = dc.SearchParticle(branchParticle, pdgId, pos_ );
+      if ( mcTruthIdx == -1 ) {
         dRTrue_ = 999.;
         delPtTrue_ = 1.0f;
         return ;
       }
-      int isFromTop =0;
-      int isFromTopIdx = dc.isFromTop( branchParticle, mcTruth );
-      if ( isFromTopIdx != -1 ) isFromTop_ = ((GenParticle*)branchParticle->At( isFromTopIdx))->PID;
-      auto gen = (GenParticle*)branchParticle->At( mcTruth );
+      auto gen = (GenParticle*)branchParticle->At( mcTruthIdx );
       dRTrue_ = gen->P4().DeltaR( pos_ );
       delPtTrue_ = abs(gen->PT-pos_.Pt())/gen->PT;
+      setIsFromTop( dc, branchParticle, mcTruthIdx);
+
+    }
+    void setDRPT(DecayChannel& dc, TClonesArray* branchParticle, int pid,  Track* trackA, Track* trackB=nullptr, Track* trackC=nullptr) {
+      GenParticle *motherA=nullptr;
+      bool isFound = true;
+      int motherAIdx =  ((GenParticle*) trackA->Particle.GetObject())->M1;
+      motherA =  (GenParticle*) branchParticle->At(motherAIdx);
+      if ( motherA->PID != pid ) isFound = false;
+
+      if ( trackB != nullptr) {
+        int motherBIdx = ((GenParticle*) trackB->Particle.GetObject())->M1;
+        if ( motherBIdx != motherAIdx ) isFound = false;
+      }
+      if ( trackC != nullptr) {
+        int motherCIdx = ((GenParticle*) trackC->Particle.GetObject())->M1;
+        if ( motherCIdx != motherAIdx ) isFound = false;
+      }
+
+      if ( isFound ) {
+        dRTrue_= motherA->P4().DeltaR(pos_);
+        delPtTrue_ = abs( motherA->PT- pos_.Pt())/motherA->PT;
+      }
+      else {
+        dRTrue_ = 999.;
+        delPtTrue_ = 1.0f;
+      }
+      setIsFromTop(dc, branchParticle, motherAIdx);
     }
     void setSoftLepton(int nLep) {nLep_ = nLep;}
     void setSoftaLepton(int naLep) {naLep_ = naLep;}
@@ -742,7 +773,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
               best_lep1Track = firstTrack; best_lep2Track = secondTrack ; best_jpsi_mass = jpsiCand.M();
               float track1_v3D = dc.VertexDistance( branchParticle, tracks[firstTrack], tracks[secondTrack]);
               jpsi[jet_idx] = new SecVtx( tracks[firstTrack], tracks[secondTrack], branchParticle, track1_v3D);
-              jpsi[jet_idx]->setDRPT( dc, branchParticle, 443);
+              jpsi[jet_idx]->setDRPT( dc, branchParticle, 443, tracks[firstTrack], tracks[secondTrack]);
               jpsi[jet_idx]->setSoftLepton(0);
               jpsi[jet_idx]->setSoftaLepton(0);
               jpsi[jet_idx]->setD0mass( -9.0f ); 
@@ -772,12 +803,13 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
       // Soft lepton check.
       if ( nsoftlep+nsoftalep ==0 ) continue; 
 
-      // Now, this jet has a D0 or D0bar.
+      // Now, this jet must have a D0 or a D0bar.
+
       // For D0 category, 
       // Assume, firstTrack = Kaon and secondTrack = pion.
       //
-      for( unsigned int firstTrack = 0 ; firstTrack< tracks.size() ; firstTrack++) {
-        for( unsigned int secondTrack = 0 ; secondTrack< tracks.size() ; secondTrack++) {
+      for( unsigned int firstTrack = 0 ; firstTrack< tracks.size()-1 ; firstTrack++) {
+        for( unsigned int secondTrack = firstTrack+1 ; secondTrack< tracks.size() ; secondTrack++) {
           if ( firstTrack == secondTrack ) continue;
           
           // Lepton track must be skipped!
@@ -805,7 +837,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
 
           if ( abs(1.864 - d0Cand.M()) < abs(1.864-best_d0_mass)) {
             d0[jet_idx] = new SecVtx( tracks[firstTrack], tracks[secondTrack], branchParticle, track1_v3D );
-            d0[jet_idx]->setDRPT( dc, branchParticle, recoPID); 
+            d0[jet_idx]->setDRPT( dc, branchParticle, recoPID, tracks[firstTrack], tracks[secondTrack]); 
             d0[jet_idx]->setSoftLepton(nsoftlep);
             d0[jet_idx]->setSoftaLepton(nsoftalep);
             d0[jet_idx]->setD0mass( d0Cand.M() ); 
@@ -830,7 +862,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
                 float track3_v3D = dc.VertexDistance( branchParticle, tracks[secondTrack], tracks[pionTrack]);
 
                 dstar[jet_idx] = new SecVtx( d0[jet_idx], tracks[pionTrack], branchParticle, track1_v3D, track2_v3D, track3_v3D );
-                dstar[jet_idx]->setDRPT( dc, branchParticle, 413*dstar[jet_idx]->charge() ); 
+                dstar[jet_idx]->setDRPT( dc, branchParticle, 413*dstar[jet_idx]->charge(), tracks[pionTrack] ); 
                 dstar[jet_idx]->setSoftLepton(nsoftlep);
                 dstar[jet_idx]->setSoftLepton(nsoftalep);
                 dstar[jet_idx]->setD0mass( d0Cand.M()); 
@@ -854,7 +886,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
         ofc.GetTH1("jpsi_mass")->Fill( jpsi[i]->mass() );
         ofc.data.init(&selLepton[0], &selLepton[1], jpsi[i]);
         ofc.GetTree("tree")->Fill(); 
-        if ( abs( 3.09-jpsi[i]->mass())< jpsi_massWindow) { 
+        if ( abs( 3.096-jpsi[i]->mass())< jpsi_massWindow) { 
           nJpsi++;
           cat = 2;
         }
