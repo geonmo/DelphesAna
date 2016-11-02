@@ -40,6 +40,7 @@ TLorentzVector TracktoTLV( Track* track, int assumePID=0 ) {
   TLV track_TLV = track->P4();
   double track_mass =0.;
   if      ( abs(track->PID)==11)  track_mass = 0.000511169;
+  else if      ( abs(track->PID)==13)  track_mass = 0.105658;
   else {
     if ( abs( assumePID)==211 ) track_mass = 0.139526;
     else if ( abs( assumePID)==321) track_mass = 0.493652;
