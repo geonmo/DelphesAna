@@ -32,7 +32,7 @@ float dstar_massWindow = 0.01;
 
 float muonTrackPTMargin = 4;
 
-float track_margin = 999.f;
+float track_margin = 0.01f;
 
 
 
@@ -534,7 +534,6 @@ class saveData {
       lep_phi[1] = lep2->phi();
       lep_mass[1] = lep2->mass();
 
-      fillLSV(lep1_QLV, lep2_QLV, svx);
     }
 };
 
@@ -766,7 +765,9 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
           Int_t pidMul = tracks[firstTrack]->PID*tracks[secondTrack]->PID;
           if ( pidMul >0 )  continue;
           // For J/Psi, 
-          if ( pidMul == -121 || pidMul == -169 ) {
+          //if ( pidMul == -121 || pidMul == -169 ) {
+          // Only muon pair.
+          if (  pidMul == -169 ) {
             TLorentzVector firstTrackLV = TracktoTLV(tracks[firstTrack]);
             TLorentzVector secondTrackLV = TracktoTLV(tracks[secondTrack]);
 
@@ -838,6 +839,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
           if ( track1_v3D > track_margin ) continue;
 
           if ( abs(1.864 - d0Cand.M()) < abs(1.864-best_d0_mass)) {
+            best_d0_mass = d0Cand.M();
             d0[jet_idx] = new SecVtx( tracks[firstTrack], tracks[secondTrack], branchParticle, track1_v3D );
             d0[jet_idx]->setDRPT( dc, branchParticle, recoPID, tracks[firstTrack], tracks[secondTrack]); 
             d0[jet_idx]->setSoftLepton(nsoftlep);
@@ -859,6 +861,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
               auto dstarCand = d0Cand+ TracktoTLV(tracks[pionTrack]);
               float diffMass = dstarCand.M() - d0Cand.M(); 
               if ( diffMass > 0.135 && diffMass<0.170 && abs(0.145-diffMass)<abs(0.145-best_dstar_diffmass)) {
+                best_dstar_diffmass = diffMass;
                 float track1_v3D = dc.VertexDistance( branchParticle, tracks[firstTrack],  tracks[secondTrack]);
                 float track2_v3D = dc.VertexDistance( branchParticle, tracks[firstTrack],  tracks[pionTrack]);
                 float track3_v3D = dc.VertexDistance( branchParticle, tracks[secondTrack], tracks[pionTrack]);
@@ -887,30 +890,36 @@ void AnalyseEvents(ExRootTreeReader *treeReader, OutFileClass& ofc)
       if ( flag_jpsi[i] ) {
         ofc.GetTH1("jpsi_mass")->Fill( jpsi[i]->mass() );
         ofc.data.init(&selLepton[0], &selLepton[1], jpsi[i]);
-        ofc.GetTree("tree")->Fill(); 
         if ( abs( 3.096-jpsi[i]->mass())< jpsi_massWindow) { 
           nJpsi++;
           cat = 2;
+          std::cout<<"Fill jpsi"<<std::endl;
+          ofc.data.fillLSV(&selLepton[0], &selLepton[1], jpsi[i]);
         }
+        ofc.GetTree("tree")->Fill(); 
       }
       else if ( flag_dstar[i]) {
         ofc.GetTH1("dstar_mass")->Fill( dstar[i]->mass() );
         ofc.GetTH1("dstar_diffmass")->Fill( dstar[i]->diffmass() );
         ofc.data.init(&selLepton[0], &selLepton[1], dstar[i]);
-        ofc.GetTree("tree")->Fill(); 
         if ( abs( 0.145-dstar[i]->diffmass())< dstar_massWindow ) {
           nDstar++;
           cat = 3;
+          std::cout<<"Fill dstar"<<std::endl;
+          ofc.data.fillLSV(&selLepton[0], &selLepton[1], dstar[i]);
         } 
+        ofc.GetTree("tree")->Fill(); 
       }
       else if ( flag_d0[i]) {
         ofc.GetTH1("d0_mass")->Fill( d0[i]->mass() );
         ofc.data.init(&selLepton[0], &selLepton[1], d0[i]);
-        ofc.GetTree("tree")->Fill();
         if ( abs( 1.864-d0[i]->mass())< d0_massWindow ) {
           nD0++;
           cat = 4;
+          std::cout<<"Fill d0"<<std::endl;
+          ofc.data.fillLSV(&selLepton[0], &selLepton[1], d0[i]);
         } 
+        ofc.GetTree("tree")->Fill();
       }
       else cat = 1; 
       ofc.GetTH1("sv_category")->Fill(cat);
@@ -988,8 +997,8 @@ int main(int argc, char* argv[])
 
   TChain *chain = new TChain("Delphes");
   if ( argc ==1 ) {
-    for( int i=10 ; i<20 ; i++) {
-      TString input = TString::Format("/pnfs/user/geonmo/Delphes_%d.root",i).Data();
+    for( int i=10 ; i<30 ; i++) {
+      TString input = TString::Format("./Delphes_%d.root",i).Data();
       //inputFile = std::string("Delphes_")+TString::Format("Delphes_%d.root",i).Data();
       //sprintf(inputFile, "Delphes_%d.root",i);
       std::cout<<input<<std::endl;
