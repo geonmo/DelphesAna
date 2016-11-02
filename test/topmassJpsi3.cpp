@@ -267,6 +267,7 @@ class SecVtx  {
 
     }
     void setDRPT(DecayChannel& dc, TClonesArray* branchParticle, int pid,  Track* trackA, Track* trackB=nullptr, Track* trackC=nullptr) {
+      pid_ = pdgId;
       GenParticle *motherA=nullptr;
       bool isFound = true;
       int motherAIdx =  ((GenParticle*) trackA->Particle.GetObject())->M1;
