@@ -18,7 +18,8 @@ hist_for_PE_err  = TH1F("dist_err_pe","Distribution of PE's mean err value",100,
 if ( len(sys.argv) != 1 ) : 
   sys.exit(-1)
 
-infiles = glob.glob("invMass_*.root")
+#infiles = glob.glob("invMass_*.root")
+infiles =["invMass_jpsi_.root","invMass_d0_.root","invMass_dstar_.root"] 
 """
 types=[]
 for filetype in infiles :
@@ -36,12 +37,12 @@ CMS_lumi.cmsTextSize = 0.6
 sv_mgs=[]
 sv_vars=[]
 for infile in infiles: 
-  type=infile.split('invMass_')[-1].split('__')[0]
+  type=infile.split('invMass_')[-1].split('_')[0]
   sv = ""
   print type
   if ( type == "jpsi") : sv="J/#psi" 
-  elif ( type == "d0") : sv="D^{0}" 
-  elif ( type == "dstar") : sv="D^{*}" 
+  elif ( type == "d0") : sv="D0" 
+  elif ( type == "dstar") : sv="D*(2010)" 
   sv_vars.append(sv)
   massList = [  
     "invMass_1665",
@@ -64,70 +65,7 @@ for infile in infiles:
     #hist1.SetStats(False)
     clone_hist = hist1.Clone()
     tf1 = TF1("f1","landau",5,245)
-    """
-    if ( mass == "invMass_nominal") :
-      sig_list =[]
-      err_list =[]
-
-      for n in range( 10000 ) :
-        clone2 = clone_hist.Clone()
-        for x in range(clone2.GetNbinsX()) :   
-          fluctuation = random.Poisson( clone2.GetBinContent(x+1))
-          clone2.SetBinContent(x+1, fluctuation   )
-          clone2.SetBinError(x+1, TMath.Sqrt(clone2.GetBinContent(x+1)))
-        clone2.Fit( tf1 )
-        if ( n == 0 ) :
-          c1 = makeCanvas("Pseudo-Data from ttbar MC",False)
-          c1 = setMargins(c1, False)
-          setDefAxis( clone2.GetXaxis(), "M_{l+%s} Mean [GeV/c^2]"%(sv),1)
-          setDefAxis( clone2.GetYaxis(), "Entries",1)
-          clone2.Draw()
-          c1.Update()
-          st = clone2.FindObject("stats")
-          st.SetY1NDC(0.8)
-          st.SetY2NDC(0.9)
-          CMS_lumi.CMS_lumi( c1,0,11)
-          c1.SaveAs("PseudoData.png")
-          
-        fitresult = TVirtualFitter.GetFitter()
-        hist_for_PE_mean.Fill( fitresult.GetParameter(1))
-        hist_for_PE_err.Fill( fitresult.GetParError(1))
-        sig_list.append( fitresult.GetParameter(1))
-        err_list.append( fitresult.GetParError(1))
-      sig = sum(sig_list)/float(len(sig_list))
-      error = sum(err_list)/float(len(err_list))
-      print "Sig : %f / %f , Err : %f / %f"%(sig, sum(sig_list)/float(len(sig_list)),error, sum(err_list)/float(len(err_list)))
-
-      c1 = makeCanvas(hist_for_PE_mean.GetTitle(),False)
-      gStyle.SetOptStat(1111)
-      c1 = setMargins(c1, False)
-      setDefAxis( hist_for_PE_mean.GetXaxis(), "M_{l+%s} Mean on Pseudo Data"%(sv),1)
-      setDefAxis( hist_for_PE_mean.GetYaxis(), "Entries",1)
-      hist_for_PE_mean.SetStats(True)
-      hist_for_PE_mean.Draw()
-      c1.Update()
-      st = hist_for_PE_mean.FindObject("stats")
-      st.SetY1NDC(0.8)
-      st.SetY2NDC(0.9)
-      CMS_lumi.CMS_lumi( c1,0,11)
-      c1.SaveAs(mass+"_PE_mean.png")
-
-      c1 = makeCanvas(hist_for_PE_err.GetTitle(),False)
-      gStyle.SetOptStat(1111)
-      c1 = setMargins(c1, False)
-      setDefAxis( hist_for_PE_err.GetXaxis(), "M_{l+%s} Error on Pseudo Data"%sv,1)
-      setDefAxis( hist_for_PE_err.GetYaxis(), "Entries",1)
-      gStyle.SetOptStat(11)
-      hist_for_PE_err.SetStats(True)
-      hist_for_PE_err.Draw()
-      c1.Update()
-      st = hist_for_PE_err.FindObject("stats")
-      st.SetY1NDC(0.8)
-      st.SetY2NDC(0.9)
-      CMS_lumi.CMS_lumi( c1,0,11)
-      c1.SaveAs(mass+"_PE_err.png")
-      gStyle.SetOptStat(0)
-    """
+    #tf1 = TF1("f1","gaus",40,80)
            
     clone_hist.Fit(tf1)
     c1 = makeCanvas(mass,False)
@@ -151,30 +89,32 @@ for infile in infiles:
     c1.Modified()
     c1.Update()
 
-    if ( mass != "invMass_nominal") :
-      fitresult = TVirtualFitter.GetFitter()
-      sig = fitresult.GetParameter(1)
-      error = fitresult.GetParError(1)
+    fitresult = TVirtualFitter.GetFitter()
+    sig = fitresult.GetParameter(1)
+    error = fitresult.GetParError(1)
 
+    print "sig-Highest point ", sig , "-",  tf1.GetMaximumX()
     mean_gauss.append(sig)
+    #mean_gauss.append(tf1.GetMaximumX())
     error_gauss.append(error)
 
     x_error_gauss.append(0)
-    c1.SaveAs(mass+"_gauss.png")
+    c1.SaveAs(mass+"_%s_landau.png"%(type))
 
   #mass_various = [ 166.5, 169.5, 171.5, 173.5, 175.5, 178.5]
-  mass_various = [ 166.5, 169.5, 175.5, 178.5]
+  mass_various = [ 166.5, 169.5, 175.5, 178.5, 172.5]
   x_array = ar.array("f", mass_various)
-  x_error_array = ar.array("f",x_error_gauss[:-1])
-  error_array = ar.array("f",error_gauss[:-1])
+  x_error_array = ar.array("f",x_error_gauss)
+  error_array = ar.array("f",error_gauss)
 
 
   y_array = ar.array("f",mean_gauss)
+  print "nb. x_array : ",len(x_array)
   h1 = TGraphErrors( len(x_array), x_array, y_array, x_error_array, error_array)
   h1.SetName("M_{t} MC samples")
   h1.SetMarkerStyle( 23)
   h1.SetMarkerColor ( kRed )
-  h1.SetMarkerSize( 1.5 )
+  h1.SetMarkerSize( 2 )
   #h1.Draw("ALP")
   sv_mgs.append(h1)
 
@@ -185,26 +125,48 @@ for infile in infiles:
   """
 
 c1 = makeCanvas("M_{t} vs M_{l+sv}",False)
-leg = TLegend(0.2,0.7, 0.5,0.8)
+leg = TLegend(0.2,0.55, 0.6,0.75)
+leg.SetTextSize(0.05)
+leg.SetBorderSize(0)
 mg = TMultiGraph();
 mg.SetTitle("M_{t} vs Invariant mass of (Lepton + Secondary Vertex); M_{t} [GeV/c^{2}] ; Invariant M_{l+SV}[GeV/c^{2}]")
 
-colors =[ ROOT.kBlack, ROOT.kBlue, ROOT.kRed ]
+colors =[ ROOT.kRed, ROOT.kGreen+3, ROOT.kBlue  ]
 markers = [ 21, 22, 23]
 y0s=[]
 slopes=[]
+slopeErrors=[]
 for idx, sv_graph in enumerate(sv_mgs) :
   sv_graph.SetLineColor(colors[idx])
   sv_graph.SetMarkerColor(colors[idx])
   sv_graph.SetMarkerStyle(markers[idx])
 
-  sv_graph.Fit("pol1")
+  tf1 = TF1("linear","pol1")
+  tf2 = TF1("linear2","pol1")
+  tf3 = TF1("linear3","pol1")
+  tf1.FixParameter(0,0)
+  tf2.FixParameter(0,0)
+  tf3.FixParameter(0,0)
+  tf1.SetLineWidth(2)
+  sv_graph.Fit(tf1)
   fitresult2 = TVirtualFitter.GetFitter()
   y_0  = fitresult2.GetParameter(0)
   slope    = fitresult2.GetParameter(1)
+  slopeError    = fitresult2.GetParError(1)
+  
+  print slope,slopeError, slope+slopeError
+  tf2.FixParameter(1, slope+slopeError)
+  tf2.SetLineColor(ROOT.kBlue)
+  tf2.SetLineStyle(2)
+  sv_graph.Fit(tf2,"OB+")
+  tf3.FixParameter(1, slope-slopeError)
+  tf3.SetLineColor(ROOT.kBlue)
+  tf3.SetLineStyle(2)
+  sv_graph.Fit(tf3,"OB+")
 
   y0s.append(y_0)
   slopes.append(slope)
+  slopeErrors.append(slopeError)
   mg.Add(sv_graph)
   leg.AddEntry( sv_graph, "M_{top} using %s"%(sv_vars[idx]),"p")
 
@@ -215,25 +177,25 @@ mg.GetXaxis().SetRangeUser(160, 180)
 
 
 mg.GetYaxis().SetRangeUser( 40,80)
-#min(mean_gauss[:2])-5 ,max(mean_gauss[:-2])+5)
 
-setDefAxis( mg.GetXaxis(), "M_{top} [GeV/c^2]",1)
+setDefAxis( mg.GetXaxis(), "M_{top} [GeV/c^{2}]",1)
 setDefAxis( mg.GetYaxis(), "Invariant M_{l+sv}[GeV/c^{2}]",1)
 
 
-#leg.AddEntry( h3, "MC nominal sample")
 leg.Draw()
 
 
 pavet = TPaveText()
-for x in range(3) :
-  pavet.AddText("y= %.2f M_{l+%s} + %.2f"%(slopes[x],sv_vars[x],y0s[x]))
+pavet.SetBorderSize(0)
+pavet.SetFillColor(0)
+for x in range(len(sv_mgs)) :
+  pavet.AddText("M_{l+%s}= %.2f M_{t} + %.1f"%(sv_vars[x], slopes[x],y0s[x]))
 #pavet.AddText("Nominal M_{top} : %3.2f #pm %.2f GeV/c^2 (Stat.)"%(nominal_mass,nominal_mass_error))
-pavet.SetTextSize(0.03)
-pavet.SetX1NDC(0.4)
+pavet.SetTextSize(0.05)
+pavet.SetX1NDC(0.55)
 pavet.SetX2NDC(0.9)
-pavet.SetY1NDC(0.15)
-pavet.SetY2NDC(0.25)
+pavet.SetY1NDC(0.75)
+pavet.SetY2NDC(0.9)
 
 pavet.Draw()
 
