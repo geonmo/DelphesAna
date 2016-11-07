@@ -143,11 +143,11 @@ elif '413' in cut :
   #matchingcut = "&&(sv_delPtTrue>0&&sv_dRTrue>0)"
   matchingvar='D*'
   matchingtype='dstar'
-print "matchingvar : ",matchingvar
+#print "matchingvar : ",matchingvar
 outMassHist = ROOT.TFile.Open("invMass_%s_%s.root"%(matchingtype,suffix),"RECREATE")
-#outMassHist.cd()
 
 lsvHists=[]
+outMassHist.cd()
 for topMass in topMassList :
   if ( topMass.find("mtop") != -1 ) :  massValue = topMass.split("mtop")[-1]
   else : massValue = "nominal" 
@@ -164,7 +164,7 @@ for topMass in topMassList :
   nEvent = tfile.Get("nEvent")
   wentries = nEvent.GetBinContent(1)
   scale = scale/wentries
-  print topMass, scale, wentries, colour, title
+  #print topMass, scale, wentries, colour, title
    
     
   mchist = makeTH1(rfname, tname, title, binning, plotvar, tcut, scale)
@@ -177,7 +177,7 @@ for topMass in topMassList :
     mchist.Add(mcTruthHist,-1)
 
 
-  print "topmass hsit : ",mchist.Integral()
+  if ( massValue=="nominal" ) : print "topmass hsit : ",mchist.Integral()
   #overflow
   if overflow:
     if len(binning) == 3 : nbin = binning[0]
@@ -201,11 +201,26 @@ for topMass in topMassList :
   masshist.Draw()
   print masshist.GetEntries()
   masshist.SetName("invMass_%s"%(massValue))
-  masshist.SetTitle("Invariant mass mtop_%s; M_{%s}  ;Entries/%f"%( massValue, matchingvar, masshist.GetBinWidth(1) ))
-  if ( plotvar in ["lsv_mass"] ) :
+  massbinWidth = masshist.GetBinWidth(1)
+  massbinUnit = "GeV"
+  if ( massbinWidth<1) : 
+    massbinWidth = massbinWidth*1000
+    massbinUnit = "MeV"
+  masshist.SetTitle("Invariant mass mtop_%s; M_{%s}  ;Entries/%.1f%s"%( massValue, matchingvar, massbinWidth,massbinUnit ))
+  lmatchingtype=''
+  lmatchingflag= False
+  if ( "lsv_mass" in plotvar or "llsv_mass" in plotvar) :
+    lmatchingflag= True
     lsvHists.append(masshist.Clone())
     outMassHist.cd()
     masshist.Write()
+    if ( matchingtype == "d0") :
+      lmatchingtype= "(D0+l)"
+    elif ( matchingtype == "dstar") :
+      lmatchingtype= "(D*+l)"
+    elif ( matchingtype == "jpsi") :
+      lmatchingtype="J/#psi"
+    masshist.SetTitle("Invariant mass mtop_%s; M_{l+%s}(GeV/c^{2}) ;Entries/%.1f%s"%( massValue, lmatchingtype, massbinWidth,massbinUnit ))
     mchist.SetName("ttbar_mtop%s"%(massValue))
     mchist.Write()
 
@@ -218,10 +233,22 @@ for topMass in topMassList :
   elif plotvar in ["sv_diffmass"] :
     sum_hs.SetTitle("Invariant mass; diff. M;Entries/%f"%( masshist.GetBinWidth(1) ))
   """
-  sum_hs.SetTitle("Invariant mass distribution;%s;Entries/%f"%(x_name,masshist.GetBinWidth(1)))
-
+  #sum_hs.SetTitle("Invariant mass distribution;%s;Entries/%f"%(x_name,masshist.GetBinWidth(1)))
+  massbinWidth = sum_hs.GetStack().Last().GetBinWidth(1)
+  massbinUnit = "GeV"
+  print massbinWidth
+  if ( massbinWidth<1) : 
+    massbinWidth = massbinWidth*1000
+    massbinUnit = "MeV"
+  if ( lmatchingflag) : sum_hs.SetTitle("Invariant mass mtop_%s; M_{l+%s} (GeV/c^{2}) ;Entries / %d%s"%( massValue, lmatchingtype, massbinWidth,massbinUnit ))
+  else : sum_hs.SetTitle("Invariant mass mtop_%s; M_{%s} (GeV/c^{2}) ;Entries / %d%s"%( massValue, matchingvar, massbinWidth,massbinUnit ))
   sum_hs.Draw("hist")
+  sum_hs.GetXaxis().SetTitleFont(12)
+  sum_hs.GetYaxis().SetTitleFont(12)
+  if ( matchingtype=="d0") : sum_hs.GetYaxis().SetLabelSize(0.03)
+
   sum_hs.SetName("hstack_%s"%(massValue))
+  outMassHist.cd()
   sum_hs.Write()
   leg = ROOT.TLegend(0.7,0.75,0.95,0.9)
   leg.AddEntry(mchistList[0],mchistList[0].GetTitle())
