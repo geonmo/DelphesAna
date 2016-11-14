@@ -36,13 +36,14 @@ CMS_lumi.cmsTextSize = 0.6
 
 sv_mgs=[]
 sv_vars=[]
+norm_graphs=[]
 for infile in infiles: 
   type=infile.split('invMass_')[-1].split('_')[0]
   sv = ""
   print type
   if ( type == "jpsi") : sv="J/#psi" 
-  elif ( type == "d0") : sv="(D0+l)" 
-  elif ( type == "dstar") : sv="(D*+l)" 
+  elif ( type == "d0") : sv="(D^{0}+l)" 
+  elif ( type == "dstar") : sv="(D^{*}+l)" 
   sv_vars.append(sv)
   massList = [  
     "invMass_1665",
@@ -74,45 +75,29 @@ for infile in infiles:
     tf3 = None
     if   ( type=="jpsi") :  
       tf0 = TF1("f0","gaus",20,100)
-      tf1 = TF1("f1","landau",20,140)
     elif ( type=="d0") :    
-      tf0 = TF1("f0","gaus",20,80)
-      tf1 = TF1("f1","landau",20,110)
-    elif ( type=="dstar") : 
       tf0 = TF1("f0","gaus",10,70)
-      tf1 = TF1("f1","landau",10,100)
+    elif ( type=="dstar") : 
+      tf0 = TF1("f0","gaus",20,80)
 
 
     total = clone_hist.GetEntries()
-    isComposite = False
-    #isComposite = ( type=="jpsi" or type=="dstar" or type=="d0")
-    if ( type=="jpsi") : tf2 = TF1("f2","gaus",20,100)
-    if ( type=="dstar") : tf2 = TF1("f2","gaus",20,80)
-    if ( type=="d0") : tf2 = TF1("f2","landau",10,100)
-
-
+    #isComposite = False
+    isComposite = ( type=="jpsi" or type=="dstar" or type=="d0")
+  
     if isComposite :
       if ( type == "jpsi") : 
-        #tf2 = TF1("f2","landau(0)+landau(3)",20,140)
-        #tf2 = TF1("f2","gaus(0)+landau(3)",20,140)
-        #tf2 = TF1("f2","landau",20,140)
         tf2 = TF1("f2","gaus",20,100)
       if ( type == "d0") :    
-        #tf2 = TF1("f2","landau(0)+landau(3)",20,110)
-        #tf2 = TF1("f2","gaus(0)+landau(3)",20,110)
-        #tf2 = TF1("f2","landau",20,110)
-        tf2 = TF1("f2","gaus",20,80)
-      if ( type == "dstar") : 
-        #tf2 = TF1("f2","landau(0)+landau(3)",10,100)
-        #tf2 = TF1("f2","gaus(0)+landau(3)",10,100)
-        #tf2 = TF1("f2","gaus(0)+landau(3)",10,100)
-        #tf2 = TF1("f2","landau",10,100)
         tf2 = TF1("f2","gaus",10,70)
+      if ( type == "dstar") : 
+        tf2 = TF1("f2","gaus",20,80)
 
-      clone_hist.Fit("f0","R")
-      fitresult = TVirtualFitter.GetFitter()
+      #clone_hist.Fit("f0","R")
+      #fitresult = TVirtualFitter.GetFitter()
 
       nGaus = total
+      """
       nLandau = total
       if ( type == "jpsi") : 
         nGaus = total*0.5
@@ -128,58 +113,25 @@ for infile in infiles:
         nLandau = total*10
       if ( type=="d0" and "nominal" in mass) :
         nLandau = total
-
-
-      GausMean = fitresult.GetParameter(1)
-      tf2.SetParameter(0,nGaus)
-      tf2.SetParameter(1,GausMean )
-      tf2.SetParameter(2,fitresult.GetParameter(2) )
-
-      clone_hist.Fit("f1","R")
-      fitresult = TVirtualFitter.GetFitter()
-      tf2.SetParameter(3,nLandau )
-      #tf2.SetParameter(4,fitresult.GetParameter(1))
-      #tf2.SetParameter(5,fitresult.GetParameter(2))
-
-
-      """
-      if ( type=="dstar") :
-        tf2.SetParameter(4,35)
-        tf2.SetParameter(5,10)
       """
 
 
-      tf2.SetParLimits(0,0,clone_hist.GetEntries() )
-      tf2.SetParLimits(3,0,clone_hist.GetEntries() )
-      tf2.SetParLimits(1,GausMean-7, GausMean+7)
+      #GausMean = fitresult.GetParameter(1)
+      #tf2.SetParameter(0,nGaus)
+      #tf2.SetParameter(1,GausMean )
+      #tf2.SetParameter(2,fitresult.GetParameter(2) )
+
+
+
+      #tf2.SetParLimits(0,0,clone_hist.GetEntries() )
+      #tf2.SetParLimits(3,0,clone_hist.GetEntries() )
+      #tf2.SetParLimits(1,GausMean-7, GausMean+7)
 
     tf2.SetLineWidth(2)
     clone_hist.Fit("f2","R")
     fitresult = TVirtualFitter.GetFitter()
 
-    if ( isComposite ) :
-      tf0.SetParameter(0, fitresult.GetParameter(0))
-      tf0.SetParameter(1, fitresult.GetParameter(1))
-      tf0.SetParameter(2, fitresult.GetParameter(2))
-      tf1.SetParameter(0, fitresult.GetParameter(3))
-      tf1.SetParameter(1, fitresult.GetParameter(4))
-      tf1.SetParameter(2, fitresult.GetParameter(5))
 
-
-
-    """
-    tf1 = TF1("f0","landau(0)+gaus(3)",5,245)
-
-    tf1.SetParameter(0,fitresult.GetParameter(0)  )
-    tf1.SetParameter(1,fitresult.GetParameter(1) )
-    tf1.SetParameter(2,fitresult.GetParameter(2) )
-    tf1.SetParameter(3,clone_hist.GetEntries()*0.1)
-    tf1.SetParameter(4,55)
-    tf1.SetParameter(5,5)
-    tf1.SetParLimits(0,0,clone_hist.GetEntries() )
-    tf1.SetParLimits(3,0,clone_hist.GetEntries() )
-    clone_hist.Fit(tf1)
-    """
     c1 = makeCanvas(mass,False)
     c1 = setMargins(c1, False)
     c1.SetTopMargin(30)
@@ -190,16 +142,9 @@ for infile in infiles:
     clone_hist.Draw()
     if isComposite : 
       tf0.SetLineColor(ROOT.kBlue)
-      tf1.SetLineColor(ROOT.kGreen+3)
+      #tf2.SetLineColor(ROOT.kRed)
       tf0.Draw("same")
-      tf1.Draw("same")
-    """
-    leg = TLegend(0.4,0.15, 0.7,0.25)
-    if ( mass != "invMass_nominal") : leg.AddEntry( clone_hist, "M_{top}=%.1fGeV/c^2"%(float(mass.split("invMass_")[-1])/10.)  )
-    else : leg.AddEntry(clone_hist, "M_{top} nominal")
-    leg.SetTextSize(0.03)
-    leg.Draw()
-    """
+      #tf2.Draw("same")
     c1.Update()
     st = clone_hist.FindObject("stats")
     st.SetY1NDC(0.6)
@@ -219,6 +164,7 @@ for infile in infiles:
 
     x_error_gauss.append(0)
     c1.SaveAs(mass+"_%s_landau.png"%(type))
+    c1.SaveAs(mass+"_%s_landau.eps"%(type))
 
   #mass_various = [ 166.5, 169.5, 171.5, 173.5, 175.5, 178.5]
   mass_various = [ 166.5, 169.5, 175.5, 178.5, 172.5]
@@ -230,7 +176,7 @@ for infile in infiles:
 
   y_array = ar.array("f",mean_gauss)
   print "nb. x_array : ",len(x_array)
-  h1 = TGraphErrors( len(x_array), x_array, y_array, x_error_array, error_array)
+  h1 = ROOT.TGraphErrors( len(x_array), x_array, y_array, x_error_array, error_array)
   h1.SetName("M_{t} MC samples")
   h1.SetMarkerStyle( 23)
   h1.SetMarkerColor ( kRed )
@@ -244,12 +190,41 @@ for infile in infiles:
   error_array = ar.array("f",error_gauss[:-1])
   """
 
+  normalized_hist = file0.Get("invMass_nominal").Clone()
+  for x in range( normalized_hist.GetNbinsX()) : 
+    normalized_hist.SetBinError( x+1, TMath.Sqrt( normalized_hist.GetBinContent(x+1)))
+  if ( type == "jpsi") :
+    tf3 = TF1("f3","gaus",20,100)
+  if ( type == "d0") :
+    tf3 = TF1("f3","gaus",10,70)
+  if ( type == "dstar") :
+    tf3 = TF1("f3","gaus",20,80)
+  normalized_hist.Fit(tf3,"RS")
+
+  fitresult =  TVirtualFitter.GetFitter()
+  sig = fitresult.GetParameter(1)
+  error = fitresult.GetParError(1)
+  norm_graph = ROOT.TGraphErrors(1,ar.array("f",[172.5]),ar.array("f",[sig]),ar.array("f",[0]),ar.array("f",[error]))
+  norm_graph.SetMarkerSize(3)
+  norm_graph.SetMarkerStyle(25)
+  norm_graph.SetMarkerColor(ROOT.kBlack)
+
+  norm_graphs.append(norm_graph)
+  c2 = TCanvas("c2","c2")
+  normalized_hist.Draw()
+  c2.SaveAs("normHist%s.png"%(type))
+  c2.SaveAs("normHist%s.eps"%(type))
+  print "norm (172.5) y value :  ",sig,"  y error : ", error
+
+
+
+
 c1 = makeCanvas("M_{t} vs M_{l+sv}",False)
 leg = TLegend(0.25,0.67, 0.75,0.92)
 leg.SetTextSize(0.05)
 leg.SetBorderSize(0)
 mg = TMultiGraph();
-mg.SetTitle("M_{t} vs Invariant mass of (Lepton + Secondary Vertex); M_{t} [GeV/c^{2}] ; Invariant M_{l+SV}[GeV/c^{2}]")
+mg.SetTitle("M_{t} vs Invariant mass of (Lepton + Secondary Vertex); M_{t} (GeV/c^{2}) ; Invariant M_{l+SV}(GeV/c^{2})")
 
 colors =[ ROOT.kRed, ROOT.kGreen+3, ROOT.kBlue  ]
 markers = [ 21, 22, 23]
@@ -300,14 +275,19 @@ for idx, sv_graph in enumerate(sv_mgs) :
  
   sv_graph.SetFillColor(0) 
   mg.Add(sv_graph)
-  leg.AddEntry( sv_graph, "M_{l+%s}= (%.2f#pm%.1f) M_{t} + (%.1f #pm %.1f)"%(sv_vars[idx], slope,slopeError, y_0, y_0Error))
+  leg.AddEntry( sv_graph, "M_{l+%s}= (%.2f#pm%.2f) M_{t} + (%.1f #pm %.1f)"%(sv_vars[idx], slope,slopeError, y_0, y_0Error))
   leg.SetTextFont(12)
   
 
 gStyle.SetOptStat(0)
 gStyle.SetOptFit(0)
 
+
+#mg.Add(norm_graphs[0])
+#mg.Add(norm_graphs[1])
+#mg.Add(norm_graphs[2])
 mg.Draw("AP")
+
 hh1 = mg.GetHistogram()
 hh1.GetXaxis().SetLimits(160,185)
 #hh1.GetXaxis().SetRangeUser(160,180)
@@ -316,11 +296,17 @@ hh1.GetXaxis().SetLimits(160,185)
 mg.GetYaxis().SetRangeUser( 30,90)
 
 setDefAxis( mg.GetXaxis(), "M_{top} (GeV/c^{2})",1)
-setDefAxis( mg.GetYaxis(), "Invariant M_{l+sv}(GeV/c^{2})",1)
+setDefAxis( mg.GetYaxis(), "M^{inv.}_{l+sv}(GeV/c^{2})",1)
 
+mg.GetXaxis().SetTitleFont(12)
+mg.GetYaxis().SetTitleFont(12)
 
 leg.Draw()
-
+"""
+norm_graphs[0].Draw("sameAP")
+norm_graphs[1].Draw("sameAP")
+norm_graphs[2].Draw("sameAP")
+"""
 
 pavet = TPaveText()
 pavet.SetBorderSize(0)
@@ -345,9 +331,12 @@ st = h1.FindObject("stats")
 c1.Modified()
 c1.Update()
 c1.SaveAs("top_mass_landau.png")
+c1.SaveAs("top_mass_landau.eps")
 
 """
 CMS_lumi.lumiTextSize = 0.7
 CMS_lumi.cmsTextSize = 0.9
 CMS_lumi.CMS_lumi( c1,0,11)
 """
+
+
